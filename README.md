@@ -102,8 +102,6 @@ Tạo file `.env` (hoặc `.env.local`) tại thư mục `client/`:
 VITE_API_URL=http://localhost:5000/api/v1
 ```
 
-> **Khi Deploy:** Thay giá trị này bằng URL Backend thực tế (Ví dụ: `https://lexiflash-backend.onrender.com/api/v1`).
-
 ---
 
 ## 5. Cài Đặt & Khởi Chạy
