@@ -35,7 +35,7 @@ import { searchApi } from "../../api/searchApi";
 import { addToast } from "../../store/slices/uiSlice";
 import { Pagination } from "../../components/common/Pagination";
 import { speakWord } from "../../utils/speech";
-import { StudyLevel, StudySet } from "../../types";
+import { StudyLevel, StudySet, Folder } from "../../types";
 import { useTranslation } from "../../i18n";
 
 export const HomePage: React.FC = () => {
@@ -75,6 +75,7 @@ export const HomePage: React.FC = () => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<StudyLevel | "ALL">("ALL");
   const [featuredSets, setFeaturedSets] = useState<StudySet[]>([]);
+  const [featuredFolders, setFeaturedFolders] = useState<Folder[]>([]);
   const [trendingSets, setTrendingSets] = useState<StudySet[]>([]);
   const [recommendationTags, setRecommendationTags] = useState<string[]>([]);
 
@@ -225,6 +226,7 @@ export const HomePage: React.FC = () => {
         if (res.data) {
           setTrendingSets(res.data.trendingSets || []);
           setFeaturedSets(res.data.featuredSets || []);
+          setFeaturedFolders(res.data.featuredFolders || []);
           if (res.data.popularTags?.length) {
             setRecommendationTags(res.data.popularTags);
           }
@@ -351,7 +353,7 @@ export const HomePage: React.FC = () => {
                   {t(
                     "home.srsAlertDue",
                     { count: dueReviews.length },
-                    `${dueReviews.length} due`,
+                    `${dueReviews.length > 99 ? "99+" : dueReviews.length} due`,
                   )}
                 </span>
               </div>
@@ -377,8 +379,8 @@ export const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. SIGNATURE HERO: Authentic Interactive Learning Deck */}
-      {!isSearchActive && (
+      {/* 2. SIGNATURE HERO: Authentic Interactive Learning Deck (Guest only) */}
+      {!isAuthenticated && !isSearchActive && (
         <div className="relative rounded-2xl bg-[#0f111a] border border-white/[0.08] p-5 sm:p-7 md:p-9 shadow-xs">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Hero Thesis */}
@@ -548,6 +550,101 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
     )}
+
+      {/* 2.2 ⭐ FEATURED FOLDERS (FOR LOGGED-IN USERS, STRICTLY HIDDEN IF NO FEATURED FOLDERS) */}
+      {isAuthenticated && featuredFolders.length > 0 && !currentSearch && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start sm:items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0 mt-0.5 sm:mt-0">
+                <FolderIcon className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                    {t(
+                      "home.featuredFoldersTitle",
+                      undefined,
+                      "Featured Folders",
+                    )}
+                  </h2>
+                  <span className="text-[11px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-md inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <span>
+                      {t("home.featuredBadge", undefined, "Featured")}
+                    </span>
+                  </span>
+                </div>
+                <p className="text-xs text-[#8e98b0] mt-0.5">
+                  {t(
+                    "home.featuredFoldersDesc",
+                    undefined,
+                    "Curated collections of study sets organized by administrators",
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featuredFolders.map((folder) => (
+              <Link
+                key={folder.id}
+                to={`/folders/${folder.id}`}
+                className="bg-[#0f111a] hover:bg-[#161926] border border-amber-500/25 hover:border-amber-500/60 rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 shadow-xs group relative overflow-hidden"
+              >
+                <div className="space-y-2.5 relative z-10">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                      <span className="text-xs font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 rounded-md font-mono whitespace-nowrap shrink-0 inline-flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-amber-300" />
+                        Featured
+                      </span>
+                      <span className="text-xs font-bold text-[#9cb1ff] bg-[#4f5fd8]/15 border border-[#4f5fd8]/30 px-2.5 py-0.5 rounded-md font-mono whitespace-nowrap shrink-0">
+                        {folder.setCount ?? folder.studySetIds?.length ?? folder.studySets?.length ?? 0}{" "}
+                        {t("common.studySets", undefined, "study sets")}
+                      </span>
+                    </div>
+                  </div>
+
+                  <h3 className="text-base font-bold text-white group-hover:text-amber-300 transition-colors line-clamp-1 flex items-center gap-2">
+                    <FolderIcon className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>{folder.title}</span>
+                  </h3>
+
+                  {folder.description && (
+                    <p className="text-xs text-[#8e98b0] line-clamp-2 leading-relaxed">
+                      {folder.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-white/[0.08] mt-3 flex items-center justify-between text-xs text-[#8e98b0] gap-2 relative z-10">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <img
+                      src={
+                        folder.creator?.avatarUrl ||
+                        `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(
+                          folder.creator?.username || "user",
+                        )}`
+                      }
+                      alt={folder.creator?.name || "Creator"}
+                      className="w-5 h-5 rounded-full object-cover bg-[#121420] shrink-0"
+                    />
+                    <span className="truncate">
+                      {t("common.by", undefined, "By")} {folder.creator?.name}
+                    </span>
+                  </div>
+                  <span className="font-semibold text-amber-300 group-hover:text-white flex items-center gap-1 transition-colors shrink-0 whitespace-nowrap">
+                    {t("common.exploreFolder", undefined, "Explore")}{" "}
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 2.5 ⭐ FEATURED STUDY SETS (STRICTLY HIDDEN IF NO FEATURED SETS) */}
       {featuredSets.length > 0 && !currentSearch && (

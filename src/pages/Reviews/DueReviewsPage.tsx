@@ -7,6 +7,7 @@ import { studyApi } from "../../api/studyApi";
 import { Button } from "../../components/common/Button";
 import { AudioButton } from "../../components/study/AudioButton";
 import { Spinner } from "../../components/common/Spinner";
+import { triggerConfetti } from "../../utils/confetti";
 import {
   BookOpen,
   BrainCircuit,
@@ -69,6 +70,23 @@ export const DueReviewsPage: React.FC = () => {
   const [pressedOption, setPressedOption] = useState<string | null>(null);
   const pressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartTimeRef = useRef<number>(0);
+
+  // Due Review State
+  const [isDueReviewMode, setIsDueReviewMode] = useState(false);
+  const [dueReviewCards, setDueReviewCards] = useState<
+    Array<Card & { progress: UserCardProgress; studySetTitle?: string }>
+  >([]);
+  const [dueReviewIndex, setDueReviewIndex] = useState(0);
+  const [dueShowAnswer, setDueShowAnswer] = useState(false);
+  const [dueFeedback, setDueFeedback] = useState<string | null>(null);
+  const [isSubmittingDue, setIsSubmittingDue] = useState(false);
+  const [isDueCompleted, setIsDueCompleted] = useState(false);
+  const [dueStats, setDueStats] = useState({
+    good: 0,
+    easy: 0,
+    hard: 0,
+    forgot: 0,
+  });
 
   // Enable iOS Safari :active support
   useEffect(() => {
@@ -311,7 +329,89 @@ export const DueReviewsPage: React.FC = () => {
     refreshMistakeBank();
   };
 
-  // Keyboard navigation for desktop (1-4 or A-D, Enter/Space to check or continue)
+  const startDueReview = (cardsToReview = dueReviews) => {
+    if (!cardsToReview.length) return;
+    setDueReviewCards(cardsToReview);
+    setDueReviewIndex(0);
+    setDueShowAnswer(false);
+    setDueFeedback(null);
+    setIsDueCompleted(false);
+    setDueStats({ good: 0, easy: 0, hard: 0, forgot: 0 });
+    setIsDueReviewMode(true);
+  };
+
+  const handleRateDueQuality = async (quality: number) => {
+    const currentCard = dueReviewCards[dueReviewIndex];
+    if (!currentCard || isSubmittingDue) return;
+
+    setIsSubmittingDue(true);
+    setDueStats((prev) => ({
+      ...prev,
+      good: quality === 3 ? prev.good + 1 : prev.good,
+      easy: quality === 5 ? prev.easy + 1 : prev.easy,
+      hard: quality === 2 ? prev.hard + 1 : prev.hard,
+      forgot: quality === 1 ? prev.forgot + 1 : prev.forgot,
+    }));
+
+    try {
+      const response = await studyApi.submitLearnAnswer(
+        currentCard.studySetId,
+        {
+          cardId: currentCard.id,
+          quality,
+        },
+      );
+      const { progress } = response.data;
+      setDueFeedback(
+        t("modes.nextReviewIn", {
+          days: progress.intervalDays,
+          status: progress.status,
+        }),
+      );
+
+      if (dueReviewIndex < dueReviewCards.length - 1) {
+        setTimeout(() => {
+          setDueReviewIndex((prev) => prev + 1);
+          setDueShowAnswer(false);
+          setDueFeedback(null);
+          setIsSubmittingDue(false);
+        }, 400);
+      } else {
+        setIsDueCompleted(true);
+        setIsSubmittingDue(false);
+        triggerConfetti();
+        dispatch(recordStudyStreak());
+        dispatch(fetchDueReviews(undefined));
+      }
+    } catch {
+      setIsSubmittingDue(false);
+    }
+  };
+
+  const handleRestartDueReview = () => {
+    setDueReviewIndex(0);
+    setDueShowAnswer(false);
+    setDueFeedback(null);
+    setIsDueCompleted(false);
+    setDueStats({ good: 0, easy: 0, hard: 0, forgot: 0 });
+  };
+
+  const handleExitDueReview = () => {
+    setIsDueReviewMode(false);
+    setIsDueCompleted(false);
+    setDueReviewCards([]);
+    setDueReviewIndex(0);
+    setDueShowAnswer(false);
+    setDueFeedback(null);
+    dispatch(fetchDueReviews(undefined));
+  };
+
+  // Keyboard navigation for desktop Mistake Quiz
+  const handleCheckAnswerRef = useRef(handleCheckAnswer);
+  useEffect(() => {
+    handleCheckAnswerRef.current = handleCheckAnswer;
+  });
+
   useEffect(() => {
     if (!isQuizMode || isQuizCompleted) return;
 
@@ -343,7 +443,7 @@ export const DueReviewsPage: React.FC = () => {
       if (e.key === "Enter" || e.key === " ") {
         if (!isSubmittingAnswer && (selectedOption || isChecked)) {
           e.preventDefault();
-          handleCheckAnswer();
+          handleCheckAnswerRef.current();
         }
       }
     };
@@ -358,6 +458,68 @@ export const DueReviewsPage: React.FC = () => {
     quizIndex,
     quizQuestions,
     isSubmittingAnswer,
+  ]);
+
+  // Keyboard navigation for Due Reviews Mode
+  const handleExitDueReviewRef = useRef(handleExitDueReview);
+  useEffect(() => {
+    handleExitDueReviewRef.current = handleExitDueReview;
+  });
+
+  const handleRateDueQualityRef = useRef(handleRateDueQuality);
+  useEffect(() => {
+    handleRateDueQualityRef.current = handleRateDueQuality;
+  });
+
+  useEffect(() => {
+    if (!isDueReviewMode || isDueCompleted) return;
+
+    const handleDueKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleExitDueReviewRef.current();
+        return;
+      }
+
+      if (!dueShowAnswer) {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          setDueShowAnswer(true);
+        }
+        return;
+      }
+
+      if (!isSubmittingDue) {
+        if (e.key === "1") {
+          e.preventDefault();
+          handleRateDueQualityRef.current(1);
+        } else if (e.key === "2") {
+          e.preventDefault();
+          handleRateDueQualityRef.current(2);
+        } else if (e.key === "3") {
+          e.preventDefault();
+          handleRateDueQualityRef.current(3);
+        } else if (e.key === "4" || e.key === "5") {
+          e.preventDefault();
+          handleRateDueQualityRef.current(5);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleDueKeyDown);
+    return () => window.removeEventListener("keydown", handleDueKeyDown);
+  }, [
+    isDueReviewMode,
+    isDueCompleted,
+    dueShowAnswer,
+    isSubmittingDue,
   ]);
 
   if (!isAuthenticated) {
@@ -760,6 +922,305 @@ export const DueReviewsPage: React.FC = () => {
     );
   }
 
+  // DUE REVIEWS INTERACTIVE SESSION
+  if (isDueReviewMode) {
+    const currentCard = dueReviewCards[dueReviewIndex];
+    const totalDue = dueReviewCards.length;
+    const progressPercent =
+      totalDue > 0
+        ? Math.round(((dueReviewIndex + 1) / totalDue) * 100)
+        : 0;
+
+    if (isDueCompleted) {
+      const goodCount = dueStats.good + dueStats.easy;
+      const hardCount = dueStats.hard + dueStats.forgot;
+      return (
+        <div className="max-w-2xl mx-auto space-y-6 animate-fade-in py-8 px-4">
+          <div className="bg-[#1a1d36] border-2 border-emerald-500/40 rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-2xl animate-scale-up">
+            <div className="w-20 h-20 bg-emerald-500/20 text-emerald-400 rounded-3xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
+              <Trophy className="w-10 h-10" />
+            </div>
+
+            <div className="space-y-2 max-w-md mx-auto">
+              <h2 className="text-2xl sm:text-3xl font-black text-white">
+                {t(
+                  "srs.dueReviewCompleteTitle",
+                  undefined,
+                  "Hoàn Thành Ôn Tập Từ Đến Hạn! 🎉",
+                )}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#8e98b0]">
+                {t(
+                  "srs.dueReviewCompleteDesc",
+                  undefined,
+                  "Tất cả các từ vựng đến hạn hôm nay đã được củng cố theo chu kỳ Spaced Repetition (SM-2). Trí nhớ dài hạn của bạn đang được tối ưu hóa!",
+                )}
+              </p>
+            </div>
+
+            {/* Stat Cards */}
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+              <div className="bg-[#0a092d]/70 border-2 border-[#2e3856] rounded-2xl p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-black text-white">
+                  {totalDue}
+                </div>
+                <div className="text-[10px] sm:text-xs font-bold text-[#939bb4] mt-1">
+                  {t("srs.dueStatTotal", undefined, "Tổng thẻ đã ôn")}
+                </div>
+              </div>
+
+              <div className="bg-[#0a092d]/70 border-2 border-emerald-500/30 rounded-2xl p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-black text-emerald-400">
+                  {goodCount}
+                </div>
+                <div className="text-[10px] sm:text-xs font-bold text-[#939bb4] mt-1">
+                  {t("srs.dueStatGood", undefined, "Nhớ tốt / Dễ")}
+                </div>
+              </div>
+
+              <div className="bg-[#0a092d]/70 border-2 border-rose-500/30 rounded-2xl p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-black text-rose-400">
+                  {hardCount}
+                </div>
+                <div className="text-[10px] sm:text-xs font-bold text-[#939bb4] mt-1">
+                  {t("srs.dueStatHard", undefined, "Cần ôn sớm / Quên")}
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                onClick={handleRestartDueReview}
+                icon={<RotateCcw className="w-4 h-4" />}
+                className="w-full sm:w-auto"
+              >
+                {t("srs.dueReviewRestart", undefined, "Ôn lại phiên này")}
+              </Button>
+
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                onClick={handleExitDueReview}
+                className="w-full sm:w-auto"
+              >
+                {t("srs.dueReviewBackToList", undefined, "Quay về danh sách")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="max-w-3xl mx-auto space-y-6 animate-fade-in py-6 px-4">
+        {/* Top Header Bar */}
+        <div className="bg-[#1a1d36] border border-[#2e3856] rounded-2xl p-4 sm:p-5 shadow-lg space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={handleExitDueReview}
+              className="flex items-center gap-1.5 text-xs font-bold text-[#8e98b0] hover:text-white transition-colors cursor-pointer active:scale-95"
+            >
+              <X className="w-4 h-4" />
+              <span>{t("srs.dueReviewExitBtn", undefined, "Thoát Ôn Tập")}</span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black px-2.5 py-1 rounded-full bg-[#4f5fd8]/20 text-[#9cb1ff] border border-[#4f5fd8]/40">
+                {t(
+                  "srs.dueReviewProgress",
+                  { current: dueReviewIndex + 1, total: totalDue },
+                  `Thẻ ${dueReviewIndex + 1} / ${totalDue}`,
+                )}
+              </span>
+            </div>
+
+            <div className="text-xs text-[#8e98b0] truncate max-w-[150px] sm:max-w-[200px]">
+              Set: {(currentCard as any)?.studySetTitle || "Study Set"}
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full bg-[#0a092d] h-2 rounded-full overflow-hidden">
+            <div
+              className="bg-gradient-to-r from-[#4f5fd8] to-emerald-400 h-full transition-all duration-300 rounded-full"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Card Interactive Area */}
+        {currentCard && (
+          <div className="bg-[#1a1d36] border-2 border-[#2e3856] rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+            <div className="text-center space-y-3 py-4 sm:py-6">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#939bb4] bg-[#2e3856]/60 px-3 py-1 rounded-full border border-[#3c476c]">
+                  {t(
+                    "modes.howWellRemember",
+                    undefined,
+                    "How well do you remember this term?",
+                  )}
+                </span>
+                {currentCard.progress.lapses > 0 && (
+                  <span className="text-xs font-black bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <Flame className="w-3 h-3 fill-rose-400" />
+                    {t(
+                      "srs.lapsesCount",
+                      { count: currentCard.progress.lapses },
+                      `${currentCard.progress.lapses} lapses`,
+                    )}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
+                  {currentCard.term}
+                </h2>
+                <AudioButton
+                  text={currentCard.term}
+                  size="md"
+                  showAccentToggle={true}
+                />
+              </div>
+
+              {currentCard.phonetic && (
+                <p className="text-sm sm:text-base font-mono text-[#939bb4]">
+                  {currentCard.phonetic}
+                </p>
+              )}
+            </div>
+
+            {/* Reveal Answer Section */}
+            {!dueShowAnswer ? (
+              <div className="text-center pt-2 sm:pt-4">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="lg"
+                  onClick={() => setDueShowAnswer(true)}
+                  className="w-full sm:w-auto px-8"
+                >
+                  {t(
+                    "modes.revealAnswer",
+                    undefined,
+                    "Hiện nghĩa & ví dụ (Space / Enter)",
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6 pt-4 border-t border-[#2e3856] animate-fade-in">
+                <div className="bg-[#0a092d]/80 border border-[#2e3856] rounded-2xl p-5 sm:p-6 text-center space-y-3">
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">
+                    {t(
+                      "modes.vietnameseMeaning",
+                      undefined,
+                      "Nghĩa tiếng Việt:",
+                    )}
+                  </span>
+                  <p className="text-xl sm:text-2xl font-bold text-white">
+                    {currentCard.definition}
+                  </p>
+
+                  {currentCard.example && (
+                    <p className="text-xs sm:text-sm text-[#939bb4] italic pt-2">
+                      &quot;{currentCard.example}&quot;
+                    </p>
+                  )}
+                </div>
+
+                {dueFeedback && (
+                  <p className="text-xs text-center font-bold text-emerald-400 animate-pulse">
+                    <CheckCircle2 className="w-3.5 h-3.5 inline mr-1" />
+                    {dueFeedback}
+                  </p>
+                )}
+
+                {/* SM-2 Recall Rating Buttons */}
+                <div className="space-y-2.5">
+                  <span className="text-xs font-bold text-[#939bb4] text-center block">
+                    {t(
+                      "modes.rateRecallDifficulty",
+                      undefined,
+                      "Rate your recall difficulty (SM-2 Interval Adjustment):",
+                    )}
+                  </span>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                    <button
+                      type="button"
+                      disabled={isSubmittingDue}
+                      onClick={() => handleRateDueQuality(1)}
+                      className="p-3 sm:p-3.5 rounded-2xl bg-red-950/40 hover:bg-red-900/60 border border-red-500/40 text-red-300 font-bold text-xs transition-all active:scale-95 cursor-pointer flex flex-col items-center gap-1"
+                    >
+                      <span className="text-base">❌</span>
+                      <span>
+                        {t("modes.sm2Forgot", undefined, "1. Quên hoàn toàn")}
+                      </span>
+                      <span className="text-[10px] text-red-400/80 font-normal">
+                        {t("modes.sm2ForgotSub", undefined, "Lặp lại ngay")}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isSubmittingDue}
+                      onClick={() => handleRateDueQuality(2)}
+                      className="p-3 sm:p-3.5 rounded-2xl bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/40 text-amber-300 font-bold text-xs transition-all active:scale-95 cursor-pointer flex flex-col items-center gap-1"
+                    >
+                      <span className="text-base">⚠️</span>
+                      <span>
+                        {t("modes.sm2Hard", undefined, "2. Khó nhớ")}
+                      </span>
+                      <span className="text-[10px] text-amber-400/80 font-normal">
+                        {t("modes.sm2HardSub", undefined, "Ôn sớm")}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isSubmittingDue}
+                      onClick={() => handleRateDueQuality(3)}
+                      className="p-3 sm:p-3.5 rounded-2xl bg-blue-950/40 hover:bg-blue-900/60 border border-blue-500/40 text-blue-300 font-bold text-xs transition-all active:scale-95 cursor-pointer flex flex-col items-center gap-1"
+                    >
+                      <span className="text-base">👍</span>
+                      <span>
+                        {t("modes.sm2Good", undefined, "3. Nhớ tốt")}
+                      </span>
+                      <span className="text-[10px] text-blue-400/80 font-normal">
+                        {t("modes.sm2GoodSub", undefined, "+1-6 ngày")}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isSubmittingDue}
+                      onClick={() => handleRateDueQuality(5)}
+                      className="p-3 sm:p-3.5 rounded-2xl bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-300 font-bold text-xs transition-all active:scale-95 cursor-pointer flex flex-col items-center gap-1"
+                    >
+                      <span className="text-base">⚡</span>
+                      <span>
+                        {t("modes.sm2Easy", undefined, "4. Rất dễ")}
+                      </span>
+                      <span className="text-[10px] text-emerald-400/80 font-normal">
+                        {t("modes.sm2EasySub", undefined, "Khoảng cách dài")}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // REGULAR DUE REVIEWS & MISTAKE BANK VIEW
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-16">
@@ -784,23 +1245,20 @@ export const DueReviewsPage: React.FC = () => {
         </div>
 
         {activeTab === "due" && dueReviews.length > 0 && (
-          <Link
-            to={dueReviews[0] ? `/sets/${dueReviews[0].studySetId}/learn` : "/"}
-            className="shrink-0 w-full sm:w-auto"
+          <Button
+            type="button"
+            variant="primary"
+            size="md"
+            onClick={() => startDueReview()}
+            className="shrink-0 w-full sm:w-auto justify-center shadow-xs"
+            icon={<ArrowRight className="w-4 h-4" />}
           >
-            <Button
-              variant="primary"
-              size="md"
-              className="w-full sm:w-auto justify-center"
-              icon={<ArrowRight className="w-4 h-4" />}
-            >
-              {t(
-                "srs.startReviewBtn",
-                { count: dueReviews.length },
-                `Start Review (${dueReviews.length} cards) 🚀`,
-              )}
-            </Button>
-          </Link>
+            {t(
+              "srs.startReviewBtn",
+              { count: dueReviews.length },
+              `Start Review (${dueReviews.length} cards) 🚀`,
+            )}
+          </Button>
         )}
 
         {activeTab === "mistakes" && mistakeCards.length > 0 && (
@@ -959,18 +1417,27 @@ export const DueReviewsPage: React.FC = () => {
                     )}
 
                     <div className="flex items-center justify-between pt-3 border-t border-[#2e3856] text-xs">
-                      <span className="text-[#586380] truncate max-w-[180px]">
+                      <span className="text-[#586380] truncate max-w-[130px] sm:max-w-[180px]">
                         Set: {(card as any).studySetTitle || "Study Set"}
                       </span>
-                      <Link
-                        to={`/sets/${card.studySetId}/learn`}
-                        className="text-[#6366F1] font-bold hover:underline flex items-center gap-1"
-                      >
-                        <span>
-                          {t("common.studyNow", undefined, "Review Now")}
-                        </span>
-                        <ArrowRight className="w-3 h-3" />
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => startDueReview([card])}
+                          className="text-white bg-[#4f5fd8]/30 hover:bg-[#4f5fd8]/50 border border-[#4f5fd8]/50 px-2.5 py-1 rounded-lg font-bold text-xs transition-all active:scale-95 cursor-pointer"
+                        >
+                          {t("srs.reviewThisCard", undefined, "Ôn từ này")}
+                        </button>
+                        <Link
+                          to={`/sets/${card.studySetId}/learn?dueOnly=true`}
+                          className="text-[#6366F1] font-bold hover:underline flex items-center gap-1"
+                        >
+                          <span>
+                            {t("common.studyNow", undefined, "Review Now")}
+                          </span>
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))}

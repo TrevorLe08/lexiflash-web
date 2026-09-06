@@ -113,33 +113,116 @@ function getWordVariants(word: string): string[] {
   return result;
 }
 
+// Placeholder dictionary for collocations and idioms
+const POSSESSIVE_PLACEHOLDERS = new Set([
+  "one's", "ones", "someone's", "someones", "somebody's", "somebodys",
+  "sb's", "sbs", "sth's", "sths", "person's", "persons"
+]);
+
+const PERSON_PLACEHOLDERS = new Set([
+  "someone", "somebody", "sb", "so", "person"
+]);
+
+const THING_PLACEHOLDERS = new Set([
+  "something", "sth", "thing"
+]);
+
+const REFLEXIVE_PLACEHOLDERS = new Set([
+  "oneself", "himself/herself", "themselves"
+]);
+
+const POSSESSIVE_PRONOUNS = ["my", "your", "his", "her", "its", "our", "their", "one's", "someone's"];
+const OBJECT_PRONOUNS = ["me", "you", "him", "her", "us", "them", "someone", "somebody"];
+
+/**
+ * Returns regex pattern for placeholder tokens (e.g. "one's" -> my/your/his/her..., "someone" -> me/you/him...)
+ */
+function getPlaceholderPattern(token: string): string | null {
+  const norm = token.toLowerCase().replace(/[’]/g, "'").trim();
+  const unquoted = norm.replace(/^\((.*)\)$/, "$1");
+
+  if (
+    POSSESSIVE_PLACEHOLDERS.has(norm) ||
+    POSSESSIVE_PLACEHOLDERS.has(unquoted) ||
+    (norm.endsWith("'s") && (norm.startsWith("one") || norm.startsWith("some") || norm.startsWith("sb")))
+  ) {
+    return `(?:my|your|his|her|its|our|their|one['’]s|ones|someone['’]s|somebody['’]s|anybody['’]s|everyone['’]s|nobody['’]s|[a-zA-Z]+['’]s|[a-zA-Z]+')`;
+  }
+
+  if (PERSON_PLACEHOLDERS.has(norm) || PERSON_PLACEHOLDERS.has(unquoted)) {
+    return `(?:me|you|him|her|us|them|someone|somebody|anybody|anyone|everyone|everybody|nobody|no\\s+one|[a-zA-Z]+)`;
+  }
+
+  if (THING_PLACEHOLDERS.has(norm) || THING_PLACEHOLDERS.has(unquoted)) {
+    return `(?:it|this|that|these|those|something|anything|everything|nothing|[a-zA-Z]+)`;
+  }
+
+  if (REFLEXIVE_PLACEHOLDERS.has(norm) || REFLEXIVE_PLACEHOLDERS.has(unquoted)) {
+    return `(?:myself|yourself|himself|herself|itself|ourselves|yourselves|themselves|oneself)`;
+  }
+
+  return null;
+}
+
+/**
+ * Strips metadata tags like (v), (n), (adj), (idiom), (phr v) from the end of a term
+ */
+function cleanTermMetadata(term: string): string {
+  return term
+    .replace(/\s*\((?:v|n|adj|adv|idiom|phr\s*v|phrasal\s*verb|formal|informal|slang)\)\s*$/i, "")
+    .trim();
+}
+
 /**
  * Builds or retrieves a cached flexible Regular Expression for collocations or single words.
- * Supports irregular verbs and 0-2 intervening words between phrase tokens.
+ * Supports placeholders (one's, someone, something), irregular verbs, and 0-2 intervening words between tokens.
  */
 function getCachedFlexibleRegex(term: string): RegExp {
-  const cleanTerm = term.trim().toLowerCase();
+  let cleanTerm = cleanTermMetadata(term).trim().toLowerCase().replace(/[’]/g, "'");
   const cached = REGEX_CACHE.get(cleanTerm);
   if (cached) return cached;
 
-  const rawWords = cleanTerm.split(/\s+/);
+  let optionalTo = false;
+  if (/^(\(to\)|to)\s+/i.test(cleanTerm)) {
+    cleanTerm = cleanTerm.replace(/^(\(to\)|to)\s+/i, "");
+    optionalTo = true;
+  }
+
+  const rawWords = cleanTerm.split(/\s+/).filter(Boolean);
   let regex: RegExp;
 
   if (rawWords.length === 1) {
-    const variants = getWordVariants(rawWords[0]);
-    const pattern = variants.map(escapeRegex).join("|");
-    regex = new RegExp(`\\b(${pattern})\\b`, "i");
+    const placeholder = getPlaceholderPattern(rawWords[0]);
+    if (placeholder) {
+      regex = new RegExp(`\\b(${placeholder})\\b`, "i");
+    } else {
+      const variants = getWordVariants(rawWords[0]);
+      const pattern = variants.map(escapeRegex).join("|");
+      regex = new RegExp(`\\b(${pattern})\\b`, "i");
+    }
   } else {
-    // Multi-word collocation: allow 0 to 2 intervening words between tokens
+    // Multi-word collocation: allow placeholders & 0 to 2 intervening words between tokens
     const wordPatterns = rawWords.map((w) => {
-      const variants = getWordVariants(w);
-      return `(?:${variants.map(escapeRegex).join("|")})`;
+      const isOptional = w.startsWith("(") && w.endsWith(")");
+      const inner = isOptional ? w.slice(1, -1) : w;
+
+      const placeholderPattern = getPlaceholderPattern(inner);
+      if (placeholderPattern) {
+        return isOptional ? `(?:${placeholderPattern})?` : `(?:${placeholderPattern})`;
+      }
+
+      const variants = getWordVariants(inner);
+      const escaped = variants.map(escapeRegex).join("|");
+      return isOptional ? `(?:${escaped})?` : `(?:${escaped})`;
     });
 
     // Intervening gap between words (e.g. "project", "employees'", "all critical")
     const gap = `(?:\\s+[\\w'’]+){0,2}\\s+`;
-    const fullPattern = `\\b(${wordPatterns.join(gap)})\\b`;
-    regex = new RegExp(fullPattern, "i");
+    let fullPattern = wordPatterns.join(gap);
+    if (optionalTo) {
+      fullPattern = `(?:to\\s+)?` + fullPattern;
+    }
+    regex = new RegExp(`\\b(${fullPattern})\\b`, "i");
   }
 
   if (REGEX_CACHE.size >= MAX_CACHE_SIZE) {
@@ -160,7 +243,7 @@ export function generateClozeQuestion(
   definition: string,
   t: (key: string, options?: any, fallback?: string) => string
 ): ClozeMatchResult {
-  const cleanTerm = term.trim();
+  const cleanTerm = cleanTermMetadata(term).trim();
   const cleanExample = example?.trim() || "";
 
   if (cleanExample) {
@@ -169,7 +252,7 @@ export function generateClozeQuestion(
     const directRegex = new RegExp(`\\b(${escaped}(?:s|es|ed|ing|d)?)\\b`, "i");
     let match = cleanExample.match(directRegex);
 
-    // 2. Fallback path: Cached flexible collocation / irregular verb matcher
+    // 2. Fallback path: Cached flexible collocation / irregular verb / placeholder matcher
     if (!match || match.index === undefined) {
       const flexibleRegex = getCachedFlexibleRegex(cleanTerm);
       match = cleanExample.match(flexibleRegex);
@@ -186,20 +269,77 @@ export function generateClozeQuestion(
       acceptable.add(normalizeText(cleanTerm));
       acceptable.add(normalizeText(matched));
 
-      // Add conjugated forms of the base term (e.g. "met the deadline" for "meet the deadline")
-      const firstWord = cleanTerm.split(/\s+/)[0];
-      const restOfTerm = cleanTerm.slice(firstWord.length);
-      const variants = getWordVariants(firstWord);
-      for (const v of variants) {
+      // If cleanTerm started with "to " or "(to) ", also add form without "to"
+      const strippedTo = cleanTerm.replace(/^(\(to\)|to)\s+/i, "").trim();
+      if (strippedTo !== cleanTerm) {
+        acceptable.add(normalizeText(strippedTo));
+      }
+
+      // Add conjugated forms of base term (first word)
+      const firstWord = strippedTo.split(/\s+/)[0];
+      const restOfTerm = strippedTo.slice(firstWord.length);
+      const termVariants = getWordVariants(firstWord);
+      for (const v of termVariants) {
         acceptable.add(normalizeText(v + restOfTerm));
       }
 
-      // If matched has interleaved words, accept the base verb applied to the matched phrase
+      // Add conjugated forms of matched phrase (first word)
       const matchedFirstWord = matched.split(/\s+/)[0];
       const restOfMatched = matched.slice(matchedFirstWord.length);
       const matchedVariants = getWordVariants(matchedFirstWord);
       for (const mv of matchedVariants) {
         acceptable.add(normalizeText(mv + restOfMatched));
+      }
+
+      // If term has possessive placeholder (e.g. "one's"), expand with all standard possessives
+      const hasPossessivePlaceholder =
+        /(\bone's\b|\bones\b|\bsomeone's\b|\bsomeones\b|\bsb's\b)/i.test(cleanTerm) ||
+        /(\bmy\b|\byour\b|\bhis\b|\bher\b|\bits\b|\bour\b|\btheir\b)/i.test(matched);
+
+      if (hasPossessivePlaceholder) {
+        for (const p of POSSESSIVE_PRONOUNS) {
+          const baseReplaced = cleanTerm.replace(
+            /(\bone's\b|\bones\b|\bsomeone's\b|\bsomeones\b|\bsb's\b)/gi,
+            p
+          );
+          acceptable.add(normalizeText(baseReplaced));
+          for (const v of termVariants) {
+            acceptable.add(normalizeText(v + baseReplaced.slice(firstWord.length)));
+          }
+
+          const matchedReplaced = matched.replace(
+            /(\bmy\b|\byour\b|\bhis\b|\bher\b|\bits\b|\bour\b|\btheir\b|\bone's\b|\bones\b)/gi,
+            p
+          );
+          acceptable.add(normalizeText(matchedReplaced));
+          for (const mv of matchedVariants) {
+            acceptable.add(normalizeText(mv + matchedReplaced.slice(matchedFirstWord.length)));
+          }
+        }
+      }
+
+      // If term has person placeholder (e.g. "someone", "sb"), expand with object pronouns
+      const hasPersonPlaceholder =
+        /(\bsomeone\b|\bsomebody\b|\bsb\b)/i.test(cleanTerm) ||
+        /(\bme\b|\byour\b|\bhim\b|\bher\b|\bus\b|\bthem\b)/i.test(matched);
+
+      if (hasPersonPlaceholder) {
+        for (const obj of OBJECT_PRONOUNS) {
+          const baseReplaced = cleanTerm.replace(/(\bsomeone\b|\bsomebody\b|\bsb\b)/gi, obj);
+          acceptable.add(normalizeText(baseReplaced));
+          for (const v of termVariants) {
+            acceptable.add(normalizeText(v + baseReplaced.slice(firstWord.length)));
+          }
+
+          const matchedReplaced = matched.replace(
+            /(\bme\b|\byou\b|\bhim\b|\bher\b|\bus\b|\bthem\b|\bsomeone\b|\bsomebody\b)/gi,
+            obj
+          );
+          acceptable.add(normalizeText(matchedReplaced));
+          for (const mv of matchedVariants) {
+            acceptable.add(normalizeText(mv + matchedReplaced.slice(matchedFirstWord.length)));
+          }
+        }
       }
 
       return {

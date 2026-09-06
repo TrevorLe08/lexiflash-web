@@ -126,6 +126,35 @@ export const loginUser = createAsyncThunk(
   },
 );
 
+export const adminLoginUser = createAsyncThunk(
+  "auth/adminLogin",
+  async (
+    data: { loginIdentifier: string; password: string },
+    { dispatch, rejectWithValue },
+  ) => {
+    try {
+      const response = await authApi.adminLogin(data);
+      const { user, accessToken, refreshToken } = response.data;
+
+      localStorage.setItem("lexiflash_access_token", accessToken);
+      localStorage.setItem("lexiflash_refresh_token", refreshToken);
+      localStorage.setItem("lexiflash_user", JSON.stringify(user));
+
+      dispatch(
+        addToast({
+          message: `Chào mừng Quản trị viên ${user.name}!`,
+          type: "success",
+        }),
+      );
+      return { user, accessToken };
+    } catch (err: any) {
+      const msg = err.message || "Đăng nhập Quản trị viên thất bại";
+      dispatch(addToast({ message: msg, type: "error" }));
+      return rejectWithValue(msg);
+    }
+  },
+);
+
 export const checkCurrentUser = createAsyncThunk(
   "auth/checkMe",
   async (_, { rejectWithValue }) => {
@@ -262,6 +291,21 @@ export const authSlice = createSlice({
         state.isAuthenticated = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Admin Login
+      .addCase(adminLoginUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(adminLoginUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.accessToken;
+        state.isAuthenticated = true;
+      })
+      .addCase(adminLoginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

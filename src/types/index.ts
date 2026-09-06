@@ -138,6 +138,8 @@ export interface Folder {
     avatarUrl?: string;
     role?: UserRole;
   };
+  privacy?: PrivacyLevel;
+  isFeatured?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -303,6 +305,7 @@ export interface UnifiedSearchResult {
 export interface ExploreRecommendationResult {
   trendingSets: StudySet[];
   featuredSets: StudySet[];
+  featuredFolders?: Folder[];
   recentSets: StudySet[];
   popularTags: string[];
 }

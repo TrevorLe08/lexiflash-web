@@ -91,6 +91,8 @@ export const en = {
     all: "All",
     you: "You",
     none: "None",
+    true: "True",
+    false: "False",
   },
 
   // Authentication (Login & Register)
@@ -163,6 +165,10 @@ export const en = {
       "High-quality study materials curated by administrators with Featured badge",
     featuredBadge: "Featured",
 
+    featuredFoldersTitle: "Featured Folders",
+    featuredFoldersDesc:
+      "Curated collections of study materials organized and highlighted by administrators",
+
     trendingTitle: "Trending Sets This Week",
     trendingDesc:
       "Top 3 study sets with the highest engagement and views this week",
@@ -229,6 +235,25 @@ export const en = {
     quizBackToMistakes: "Back to Mistake Bank",
     quizExitBtn: "Exit Quiz",
     quizAccuracy: "Accuracy",
+    dueReviewTitle: "Due Reviews Session (SM-2)",
+    dueReviewProgress: "Card {current} / {total}",
+    dueReviewExitBtn: "Exit Review",
+    dueReviewCompleteTitle: "Due Reviews Completed! 🎉",
+    dueReviewCompleteDesc:
+      "All due cards for today have been reinforced using Spaced Repetition (SM-2). Your long-term retention is optimized!",
+    dueStatTotal: "Total Reviewed",
+    dueStatGood: "Good / Easy",
+    dueStatHard: "Hard / Forgot",
+    dueReviewRestart: "Review Session Again",
+    dueReviewBackToList: "Back to Due List",
+    reviewThisCard: "Review this card",
+    onlyDueBadge: "Review Due Cards ({count} cards)",
+    onlyDueBanner: "This set has {count} cards due for review today.",
+    onlyDueAction: "Review Due Only",
+    allCardsAction: "Review All ({count} cards)",
+    noDueInSetTitle: "No Due Reviews in this Set! 🎉",
+    noDueInSetDesc:
+      "This set currently has no cards scheduled for SM-2 review today.",
   },
 
   // Folders Page
@@ -575,6 +600,9 @@ export const en = {
     yourAnswer: "Your answer:",
     noAnswerProvided: "No answer provided",
     correctAnswerLabel: "Correct answer:",
+    termLabel: "Term:",
+    definitionLabel: "Definition:",
+    isMatchCorrect: "Is this match correct?",
     typeYourEnglishAnswer: "Type your English answer...",
     answeredCount: "Answered: {current} / {total}",
     submitTestBtn: "Submit Test & Grade Answers 🚀",

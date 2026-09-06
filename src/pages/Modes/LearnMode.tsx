@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { fetchStudySetById } from "../../store/slices/studySetSlice";
 import { studyApi } from "../../api/studyApi";
@@ -24,6 +24,8 @@ import { useTranslation } from "../../i18n";
 
 export const LearnMode: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isDueOnly = searchParams.get("dueOnly") === "true";
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
 
@@ -31,6 +33,8 @@ export const LearnMode: React.FC = () => {
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   const [cards, setCards] = useState<Card[]>([]);
+  const [dueCardsCount, setDueCardsCount] = useState<number>(0);
+  const [loadingDue, setLoadingDue] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [progressSummary, setProgressSummary] =
@@ -49,17 +53,43 @@ export const LearnMode: React.FC = () => {
       studyApi.getProgress(id).then((res) => {
         if (res.data) setProgressSummary(res.data);
       });
+
+      if (isDueOnly) {
+        setLoadingDue(true);
+        studyApi
+          .getDueReviews(id)
+          .then((res) => {
+            const dueList = res.data || [];
+            setCards(dueList);
+            setDueCardsCount(dueList.length);
+            setCurrentIndex(0);
+            setShowAnswer(false);
+            setIsCompleted(false);
+          })
+          .catch(() => {})
+          .finally(() => {
+            setLoadingDue(false);
+          });
+      } else {
+        studyApi
+          .getDueReviews(id)
+          .then((res) => {
+            const dueList = res.data || [];
+            setDueCardsCount(dueList.length);
+          })
+          .catch(() => {});
+      }
     }
-  }, [dispatch, id]);
+  }, [dispatch, id, isDueOnly]);
 
   useEffect(() => {
-    if (currentSet?.cards) {
+    if (!isDueOnly && currentSet?.cards) {
       setCards(currentSet.cards);
       setCurrentIndex(0);
       setShowAnswer(false);
       setIsCompleted(false);
     }
-  }, [currentSet]);
+  }, [currentSet, isDueOnly]);
 
   if (!isAuthenticated) {
     return (
@@ -160,9 +190,23 @@ export const LearnMode: React.FC = () => {
     setIsCompleted(false);
     hasHardOrForgotRef.current = false;
     startTimeRef.current = Date.now();
+    if (isDueOnly && id) {
+      setLoadingDue(true);
+      studyApi
+        .getDueReviews(id)
+        .then((res) => {
+          const dueList = res.data || [];
+          setCards(dueList);
+          setDueCardsCount(dueList.length);
+        })
+        .catch(() => {})
+        .finally(() => {
+          setLoadingDue(false);
+        });
+    }
   };
 
-  if (loading) {
+  if (loading || loadingDue) {
     return (
       <Spinner
         size="lg"
@@ -174,6 +218,48 @@ export const LearnMode: React.FC = () => {
 
   if (!currentSet) {
     return <EntityNotFound type="set" className="py-20" />;
+  }
+
+  if (isDueOnly && cards.length === 0) {
+    return (
+      <div className="max-w-md mx-auto py-16 text-center space-y-4 animate-fade-in">
+        <div className="w-16 h-16 rounded-3xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
+          <CheckCircle2 className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold text-white">
+          {t(
+            "srs.noDueInSetTitle",
+            undefined,
+            "Không có từ nào đến hạn ôn tập! 🎉",
+          )}
+        </h2>
+        <p className="text-sm text-[#939bb4]">
+          {t(
+            "srs.noDueInSetDesc",
+            undefined,
+            "Học phần này hiện không có từ vựng nào đến hạn ôn tập SM-2 hôm nay.",
+          )}
+        </p>
+        <div className="flex flex-wrap justify-center gap-3 pt-2">
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setSearchParams({})}
+          >
+            {t(
+              "srs.allCardsAction",
+              { count: currentSet.cards.length },
+              `Ôn tập toàn bộ (${currentSet.cards.length} từ)`,
+            )}
+          </Button>
+          <Link to={`/sets/${id}`}>
+            <Button variant="outline" size="md">
+              {t("common.backToSet", undefined, "Quay lại học phần")}
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const progressPercent =
@@ -191,6 +277,51 @@ export const LearnMode: React.FC = () => {
           backUrl={`/sets/${id}`}
           percent={progressPercent}
         />
+
+        {/* Due Only / All Cards Mode Switcher */}
+        {isDueOnly ? (
+          <div className="bg-[#4f5fd8]/15 border border-[#4f5fd8]/40 rounded-2xl p-3 px-4 flex items-center justify-between gap-3 text-xs">
+            <span className="text-white font-medium flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              {t(
+                "srs.onlyDueBadge",
+                { count: cards.length },
+                `Ôn tập từ đến hạn (${cards.length} từ)`,
+              )}
+            </span>
+            {currentSet.cards.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSearchParams({})}
+                className="text-[#9cb1ff] hover:text-white underline cursor-pointer transition-all shrink-0 font-medium"
+              >
+                {t(
+                  "srs.allCardsAction",
+                  { count: currentSet.cards.length },
+                  `Ôn tập toàn bộ (${currentSet.cards.length} từ)`,
+                )}
+              </button>
+            )}
+          </div>
+        ) : dueCardsCount > 0 ? (
+          <div className="bg-[#4f5fd8]/15 border border-[#4f5fd8]/40 rounded-2xl p-3 px-4 flex items-center justify-between gap-3 text-xs">
+            <span className="text-white font-medium flex items-center gap-2">
+              <BrainCircuit className="w-4 h-4 text-[#7988ff]" />
+              {t(
+                "srs.onlyDueBanner",
+                { count: dueCardsCount },
+                `Học phần này có ${dueCardsCount} từ đến hạn ôn tập hôm nay.`,
+              )}
+            </span>
+            <button
+              type="button"
+              onClick={() => setSearchParams({ dueOnly: "true" })}
+              className="bg-[#4f5fd8] hover:bg-[#5e6ef8] text-white px-3 py-1 rounded-xl font-bold cursor-pointer transition-all shrink-0 active:scale-95"
+            >
+              {t("srs.onlyDueAction", undefined, "Chỉ ôn từ đến hạn")}
+            </button>
+          </div>
+        ) : null}
 
         {/* SRS Mastery Summary Dots */}
         {progressSummary && (
@@ -225,18 +356,30 @@ export const LearnMode: React.FC = () => {
           </div>
           <div className="space-y-2 max-w-md mx-auto">
             <h2 className="text-3xl font-black text-white">
-              {t(
-                "modes.learnCompleteTitle",
-                undefined,
-                "Adaptive Learning Round Complete! 🎉",
-              )}
+              {isDueOnly
+                ? t(
+                    "srs.dueReviewCompleteTitle",
+                    undefined,
+                    "Hoàn Thành Ôn Tập Từ Đến Hạn! 🎉",
+                  )
+                : t(
+                    "modes.learnCompleteTitle",
+                    undefined,
+                    "Adaptive Learning Round Complete! 🎉",
+                  )}
             </h2>
             <p className="text-sm text-[#939bb4]">
-              {t(
-                "modes.learnCompleteDesc",
-                undefined,
-                "The Spaced Repetition engine has recorded your recall intervals. Cards with difficulty will be scheduled sooner for optimal retention.",
-              )}
+              {isDueOnly
+                ? t(
+                    "srs.dueReviewCompleteDesc",
+                    undefined,
+                    "Tất cả các từ vựng đến hạn hôm nay đã được củng cố theo chu kỳ Spaced Repetition (SM-2). Trí nhớ dài hạn của bạn đang được tối ưu hóa!",
+                  )
+                : t(
+                    "modes.learnCompleteDesc",
+                    undefined,
+                    "The Spaced Repetition engine has recorded your recall intervals. Cards with difficulty will be scheduled sooner for optimal retention.",
+                  )}
             </p>
           </div>
 
@@ -249,6 +392,17 @@ export const LearnMode: React.FC = () => {
             >
               {t("modes.studyAgain", undefined, "Study Again")}
             </Button>
+            {isDueOnly && (
+              <Link to="/reviews">
+                <Button variant="outline" size="lg">
+                  {t(
+                    "srs.dueReviewBackToList",
+                    undefined,
+                    "Quay về danh sách",
+                  )}
+                </Button>
+              </Link>
+            )}
             <Link to={`/sets/${id}/test`}>
               <Button variant="gradient" size="lg">
                 {t("modes.takeQuizTest", undefined, "Take a Quiz / Test 📝")}

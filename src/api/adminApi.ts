@@ -6,7 +6,9 @@ import {
   PrivacyLevel,
   StudySet,
   ClassGroup,
+  Folder,
 } from "../types";
+import { BannerNotificationConfig, MaintenanceConfig } from "../types/system.types";
 
 export interface AdminOverviewStats {
   users: {
@@ -121,6 +123,26 @@ export const adminApi = {
     return axiosClient.delete(`/admin/sets/${setId}`);
   },
 
+  getFolders: (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    isFeatured?: boolean;
+  }): Promise<ApiResponse<PaginatedResult<Folder>>> => {
+    return axiosClient.get("/admin/folders", { params });
+  },
+
+  toggleFeaturedFolder: (
+    folderId: string,
+    isFeatured: boolean,
+  ): Promise<ApiResponse<Folder>> => {
+    return axiosClient.patch(`/admin/folders/${folderId}/featured`, { isFeatured });
+  },
+
+  deleteFolder: (folderId: string): Promise<ApiResponse<void>> => {
+    return axiosClient.delete(`/admin/folders/${folderId}`);
+  },
+
   getGroups: (params?: {
     page?: number;
     limit?: number;
@@ -137,5 +159,25 @@ export const adminApi = {
     topics: string[],
   ): Promise<ApiResponse<{ topics: string[] }>> => {
     return axiosClient.put("/admin/featured-topics", { topics });
+  },
+
+  getBanner: (): Promise<ApiResponse<{ banner: BannerNotificationConfig }>> => {
+    return axiosClient.get("/admin/banner");
+  },
+
+  updateBanner: (
+    data: Omit<BannerNotificationConfig, "id" | "updatedAt">,
+  ): Promise<ApiResponse<{ banner: BannerNotificationConfig }>> => {
+    return axiosClient.put("/admin/banner", data);
+  },
+
+  getMaintenance: (): Promise<ApiResponse<{ maintenance: MaintenanceConfig }>> => {
+    return axiosClient.get("/admin/maintenance");
+  },
+
+  updateMaintenance: (
+    data: Omit<MaintenanceConfig, "updatedAt">,
+  ): Promise<ApiResponse<{ maintenance: MaintenanceConfig }>> => {
+    return axiosClient.put("/admin/maintenance", data);
   },
 };

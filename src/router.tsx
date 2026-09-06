@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import { AdminRoute } from "./components/auth/AdminRoute";
 
@@ -9,6 +9,11 @@ const HomePage = lazy(() =>
 );
 const LoginPage = lazy(() =>
   import("./pages/Auth/LoginPage").then((m) => ({ default: m.LoginPage })),
+);
+const AdminLoginPage = lazy(() =>
+  import("./pages/Auth/AdminLoginPage").then((m) => ({
+    default: m.AdminLoginPage,
+  })),
 );
 const RegisterPage = lazy(() =>
   import("./pages/Auth/RegisterPage").then((m) => ({ default: m.RegisterPage })),
@@ -136,6 +141,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: HomePage },
       { path: "login", Component: LoginPage },
+      { path: "admin/login", Component: AdminLoginPage },
       { path: "register", Component: RegisterPage },
       { path: "forgot-password", Component: ForgotPasswordPage },
       { path: "reset-password", Component: ResetPasswordPage },

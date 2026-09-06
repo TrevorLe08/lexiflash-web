@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { loginUser } from "../../store/slices/authSlice";
 import { Button } from "../../components/common/Button";
 import { Input } from "../../components/common/Input";
 import { Logo } from "../../components/common/Logo";
-import { LogIn, Eye, EyeOff } from "lucide-react";
+import { LogIn, Eye, EyeOff, AlertTriangle, ShieldCheck } from "lucide-react";
 import { useTranslation } from "../../i18n";
+import { systemApi } from "../../api/systemApi";
 
 export const LoginPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -17,8 +18,20 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
 
   const { loading } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    systemApi
+      .getMaintenance()
+      .then((res) => {
+        if (res.data?.maintenance?.isActive) {
+          setIsMaintenanceActive(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +74,27 @@ export const LoginPage: React.FC = () => {
             )}
           </p>
         </div>
+
+        {/* Maintenance Warning Banner */}
+        {isMaintenanceActive && (
+          <div className="bg-amber-500/15 border border-amber-500/30 rounded-2xl p-4 text-xs text-amber-300 space-y-2 animate-fade-in">
+            <div className="flex items-center gap-2 font-bold text-amber-200">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Hệ thống đang trong chế độ bảo trì</span>
+            </div>
+            <p className="text-amber-300/80 leading-relaxed">
+              Tài khoản học viên thông thường hiện không thể đăng nhập. Nếu bạn là
+              Quản trị viên, vui lòng truy cập qua{" "}
+              <Link
+                to="/admin/login"
+                className="text-amber-200 font-bold underline hover:text-white inline-flex items-center gap-1"
+              >
+                Cổng Đăng nhập Quản trị viên
+              </Link>
+              .
+            </p>
+          </div>
+        )}
 
         {/* Regular Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -130,14 +164,25 @@ export const LoginPage: React.FC = () => {
           </Button>
         </form>
 
-        <div className="text-center text-xs text-[#939bb4] pt-2 border-t border-[#2e3856]">
-          {t("auth.noAccount", undefined, "Don't have an account?")}{" "}
-          <Link
-            to="/register"
-            className="text-[#6366F1] font-bold hover:underline"
-          >
-            {t("auth.signupLink", undefined, "Sign up for free")}
-          </Link>
+        <div className="text-center text-xs text-[#939bb4] pt-2 border-t border-[#2e3856] space-y-2">
+          <div>
+            {t("auth.noAccount", undefined, "Don't have an account?")}{" "}
+            <Link
+              to="/register"
+              className="text-[#6366F1] font-bold hover:underline"
+            >
+              {t("auth.signupLink", undefined, "Sign up for free")}
+            </Link>
+          </div>
+          <div className="pt-2 border-t border-[#2e3856]/60">
+            <Link
+              to="/admin/login"
+              className="inline-flex items-center gap-1.5 text-xs text-[#818cf8] hover:text-[#a5b4fc] transition-colors font-medium"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Cổng Đăng nhập Quản trị viên (Admin Portal)</span>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

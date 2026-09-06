@@ -171,6 +171,76 @@ export const TestMode: React.FC = () => {
     setUserAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
 
+  const formatReviewAnswer = (type: QuestionType, ans?: string) => {
+    if (!ans) return "";
+    if (type === QuestionType.TRUE_FALSE) {
+      const lower = ans.trim().toLowerCase();
+      if (
+        lower === "true" ||
+        lower === "đúng" ||
+        lower === "dung" ||
+        lower === "t"
+      ) {
+        return t("common.true", undefined, "Đúng");
+      }
+      if (lower === "false" || lower === "sai" || lower === "f") {
+        return t("common.false", undefined, "Sai");
+      }
+    }
+    return ans;
+  };
+
+  const renderQuestionPrompt = (
+    type: QuestionType,
+    promptText: string,
+    isCardView = false,
+  ) => {
+    if (type === QuestionType.TRUE_FALSE) {
+      const match = promptText.match(
+        /Term:\s*"([^"]+)"\s*\n\s*Definition:\s*"([^"]+)"(?:\s*\n\s*Is this match correct\??)?/i,
+      );
+      if (match) {
+        const [, term, def] = match;
+        return (
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span className="text-xs sm:text-sm font-semibold text-[#8e98b0]">
+                {t("modes.termLabel", undefined, "Thuật ngữ:")}
+              </span>
+              <span
+                className={`${
+                  isCardView ? "text-2xl sm:text-3xl" : "text-lg"
+                } font-black text-white`}
+              >
+                &quot;{term}&quot;
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span className="text-xs sm:text-sm font-semibold text-[#8e98b0]">
+                {t("modes.definitionLabel", undefined, "Định nghĩa:")}
+              </span>
+              <span
+                className={`${
+                  isCardView ? "text-xl sm:text-2xl" : "text-base"
+                } font-bold text-emerald-400`}
+              >
+                &quot;{def}&quot;
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm font-medium text-[#939bb4] pt-1">
+              {t(
+                "modes.isMatchCorrect",
+                undefined,
+                "Cặp từ và định nghĩa này có chính xác không?",
+              )}
+            </p>
+          </div>
+        );
+      }
+    }
+    return <span className="whitespace-pre-line">{promptText}</span>;
+  };
+
   const handleSubmitTest = async () => {
     if (!testData) return;
     setIsSubmitting(true);
@@ -843,9 +913,9 @@ export const TestMode: React.FC = () => {
                     </div>
                   </div>
 
-                  <p className="text-base font-bold text-white mb-3 whitespace-pre-line leading-relaxed">
-                    {rev.prompt}
-                  </p>
+                  <div className="text-base font-bold text-white mb-3 leading-relaxed">
+                    {renderQuestionPrompt(rev.type, rev.prompt)}
+                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     <div className="bg-[#0a092d] p-3 rounded-xl border border-[#252b48]">
@@ -859,7 +929,7 @@ export const TestMode: React.FC = () => {
                             : "text-rose-300 font-medium line-through"
                         }
                       >
-                        {rev.userAnswer ||
+                        {formatReviewAnswer(rev.type, rev.userAnswer) ||
                           `(${t("modes.noAnswerProvided", undefined, "Chưa nhập câu trả lời")})`}
                       </strong>
                     </div>
@@ -872,7 +942,7 @@ export const TestMode: React.FC = () => {
                         )}
                       </span>
                       <strong className="text-emerald-400 font-medium">
-                        {rev.correctAnswer}
+                        {formatReviewAnswer(rev.type, rev.correctAnswer)}
                       </strong>
                     </div>
                   </div>
@@ -916,9 +986,9 @@ export const TestMode: React.FC = () => {
 
                   {/* Question Prompt Card */}
                   <div className="py-8 sm:py-10 flex flex-col items-center justify-center text-center px-4 sm:px-8 bg-[#131722]/60 rounded-2xl border border-[#252b48]/60 shadow-inner">
-                    <h3 className="text-xl sm:text-2xl font-bold text-white leading-relaxed whitespace-pre-line tracking-wide">
-                      {currentQ.prompt}
-                    </h3>
+                    <div className="text-xl sm:text-2xl font-bold text-white leading-relaxed tracking-wide">
+                      {renderQuestionPrompt(currentQ.type, currentQ.prompt, true)}
+                    </div>
                   </div>
 
                   {/* Options / Input Area */}
@@ -967,14 +1037,32 @@ export const TestMode: React.FC = () => {
                     </div>
                   ) : currentQ.type === QuestionType.TRUE_FALSE ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                      {["Đúng", "Sai"].map((opt) => {
-                        const isTrue = opt === "Đúng";
-                        const isSelected = selectedAnswer === opt;
+                      {[
+                        {
+                          value: "true",
+                          label: t("common.true", undefined, "Đúng"),
+                        },
+                        {
+                          value: "false",
+                          label: t("common.false", undefined, "Sai"),
+                        },
+                      ].map((item) => {
+                        const isTrue = item.value === "true";
+                        const isSelected =
+                          selectedAnswer === item.value ||
+                          (item.value === "true" &&
+                            (selectedAnswer?.toLowerCase() === "true" ||
+                              selectedAnswer?.toLowerCase() === "đúng")) ||
+                          (item.value === "false" &&
+                            (selectedAnswer?.toLowerCase() === "false" ||
+                              selectedAnswer?.toLowerCase() === "sai"));
                         return (
                           <button
-                            key={opt}
+                            key={item.value}
                             type="button"
-                            onClick={() => handleSelectOption(currentQ.id, opt)}
+                            onClick={() =>
+                              handleSelectOption(currentQ.id, item.value)
+                            }
                             className={`p-5 rounded-2xl border flex items-center justify-between gap-4 transition-all duration-150 cursor-pointer select-none ${
                               isSelected
                                 ? isTrue
@@ -998,7 +1086,7 @@ export const TestMode: React.FC = () => {
                                 )}
                               </div>
                               <span className="text-base sm:text-lg font-bold">
-                                {opt}
+                                {item.label}
                               </span>
                             </div>
                             <div
@@ -1010,7 +1098,9 @@ export const TestMode: React.FC = () => {
                                   : "border-[#3b4568] bg-transparent opacity-40"
                               }`}
                             >
-                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                              {isSelected && (
+                                <Check className="w-3 h-3 stroke-[3]" />
+                              )}
                             </div>
                           </button>
                         );
@@ -1183,9 +1273,9 @@ export const TestMode: React.FC = () => {
                     </div>
 
                     <div className="py-4 px-5 bg-[#131722]/60 rounded-2xl border border-[#252b48]/60 shadow-inner">
-                      <h4 className="text-base sm:text-lg font-bold text-white leading-relaxed whitespace-pre-line">
-                        {q.prompt}
-                      </h4>
+                      <div className="text-base sm:text-lg font-bold text-white leading-relaxed">
+                        {renderQuestionPrompt(q.type, q.prompt, false)}
+                      </div>
                     </div>
 
                     {/* Multiple Choice Options */}
@@ -1234,14 +1324,32 @@ export const TestMode: React.FC = () => {
                       </div>
                     ) : q.type === QuestionType.TRUE_FALSE ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        {["Đúng", "Sai"].map((opt) => {
-                          const isTrue = opt === "Đúng";
-                          const isSelected = selectedAnswer === opt;
+                        {[
+                          {
+                            value: "true",
+                            label: t("common.true", undefined, "Đúng"),
+                          },
+                          {
+                            value: "false",
+                            label: t("common.false", undefined, "Sai"),
+                          },
+                        ].map((item) => {
+                          const isTrue = item.value === "true";
+                          const isSelected =
+                            selectedAnswer === item.value ||
+                            (item.value === "true" &&
+                              (selectedAnswer?.toLowerCase() === "true" ||
+                                selectedAnswer?.toLowerCase() === "đúng")) ||
+                            (item.value === "false" &&
+                              (selectedAnswer?.toLowerCase() === "false" ||
+                                selectedAnswer?.toLowerCase() === "sai"));
                           return (
                             <button
-                              key={opt}
+                              key={item.value}
                               type="button"
-                              onClick={() => handleSelectOption(q.id, opt)}
+                              onClick={() =>
+                                handleSelectOption(q.id, item.value)
+                              }
                               className={`p-4 rounded-2xl border flex items-center justify-between gap-3 transition-all duration-150 cursor-pointer select-none ${
                                 isSelected
                                   ? isTrue
@@ -1256,7 +1364,9 @@ export const TestMode: React.FC = () => {
                                 ) : (
                                   <XCircle className="w-5 h-5 text-rose-400" />
                                 )}
-                                <span className="text-sm font-bold">{opt}</span>
+                                <span className="text-sm font-bold">
+                                  {item.label}
+                                </span>
                               </div>
                               <div
                                 className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
@@ -1267,7 +1377,9 @@ export const TestMode: React.FC = () => {
                                     : "border-[#3b4568] bg-transparent opacity-40"
                                 }`}
                               >
-                                {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                {isSelected && (
+                                  <Check className="w-2.5 h-2.5 stroke-[3]" />
+                                )}
                               </div>
                             </button>
                           );

@@ -20,7 +20,12 @@ export const MobileNav: React.FC = () => {
       to: "/reviews",
       label: isVietnamese ? "Ôn tập" : "Reviews",
       icon: BookOpen,
-      badge: dueReviews.length > 0 ? dueReviews.length : null,
+      badge:
+        dueReviews.length > 0
+          ? dueReviews.length > 99
+            ? "99+"
+            : dueReviews.length
+          : null,
     },
     {
       to: "/sets/create",
@@ -94,9 +99,9 @@ export const MobileNav: React.FC = () => {
                           : "text-[#8e98b0]",
                       )}
                     />
-                    {typeof item.badge === "number" && item.badge > 0 && (
+                    {item.badge !== null && item.badge !== undefined && (
                       <span className="absolute -top-1.5 -right-2.5 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full min-w-[14px] text-center">
-                        {item.badge > 99 ? "99+" : item.badge}
+                        {item.badge}
                       </span>
                     )}
                   </div>

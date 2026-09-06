@@ -22,6 +22,15 @@ export const authApi = {
     return axiosClient.post("/auth/login", data);
   },
 
+  adminLogin: (data: {
+    loginIdentifier: string;
+    password: string;
+  }): Promise<
+    ApiResponse<{ user: User; accessToken: string; refreshToken: string }>
+  > => {
+    return axiosClient.post("/auth/admin-login", data);
+  },
+
   refreshToken: (
     refreshToken: string,
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> => {

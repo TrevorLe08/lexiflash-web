@@ -20,8 +20,6 @@ export const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   className = "",
 }) => {
-  if (totalPages <= 1) return null;
-
   // Active input state: which ellipsis is currently replaced by the jump input box
   const [activeInput, setActiveInput] = useState<"left" | "right" | null>(null);
   const [jumpValue, setJumpValue] = useState<string>("");
@@ -37,27 +35,32 @@ export const Pagination: React.FC<PaginationProps> = ({
     }
   }, [activeInput]);
 
-  const commitJump = (val: string) => {
-    setActiveInput(null);
-    const trimmed = val.trim();
-    setJumpValue("");
-    if (trimmed) {
-      const parsed = parseInt(trimmed, 10);
-      if (!isNaN(parsed)) {
-        const clamped = Math.max(1, Math.min(totalPages, parsed));
-        if (clamped !== currentPage) {
-          onPageChange(clamped);
+  const commitJump = React.useCallback(
+    (val: string) => {
+      setActiveInput(null);
+      const trimmed = val.trim();
+      setJumpValue("");
+      if (trimmed) {
+        const parsed = parseInt(trimmed, 10);
+        if (!isNaN(parsed)) {
+          const clamped = Math.max(1, Math.min(totalPages, parsed));
+          if (clamped !== currentPage) {
+            onPageChange(clamped);
+          }
         }
       }
-    }
-  };
+    },
+    [totalPages, currentPage, onPageChange],
+  );
 
   // When debounced value updates while input is still open, auto-commit
   useEffect(() => {
     if (activeInput && debouncedJump.trim()) {
       commitJump(debouncedJump);
     }
-  }, [debouncedJump]);
+  }, [debouncedJump, activeInput, commitJump]);
+
+  if (totalPages <= 1) return null;
 
   const handleStartJump = (pos: "left" | "right") => {
     setActiveInput(pos);

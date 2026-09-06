@@ -636,8 +636,8 @@ export const Navbar: React.FC = () => {
               >
                 <BookOpen className="w-4 h-4 text-[#4f5fd8]" />
                 {dueReviews.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-bounce">
-                    {dueReviews.length}
+                  <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black min-w-[1.125rem] h-4 px-1 rounded-full flex items-center justify-center animate-bounce shadow-xs">
+                    {dueReviews.length > 99 ? "99+" : dueReviews.length}
                   </span>
                 )}
               </Link>

@@ -91,6 +91,8 @@ export const vi = {
     all: "Tất cả",
     you: "Bạn",
     none: "Không có",
+    true: "Đúng",
+    false: "Sai",
   },
 
   // Authentication (Login & Register)
@@ -165,6 +167,10 @@ export const vi = {
       "Những bộ thẻ chất lượng cao được tuyển chọn và gắn huy hiệu Nổi bật",
     featuredBadge: "Nổi Bật",
 
+    featuredFoldersTitle: "Thư Mục Nổi Bật & Tiêu Biểu",
+    featuredFoldersDesc:
+      "Những thư mục tài liệu học tập chất lượng cao được tuyển chọn và gắn huy hiệu Nổi bật",
+
     trendingTitle: "Bộ Từ Vựng Thịnh Hành Trong Tuần",
     trendingDesc:
       "Top 3 bộ thẻ có lượt học và tăng trưởng cao nhất tuần này",
@@ -230,6 +236,25 @@ export const vi = {
     quizBackToMistakes: "Quay về Ngân hàng lỗi sai",
     quizExitBtn: "Thoát Quiz",
     quizAccuracy: "Độ chính xác",
+    dueReviewTitle: "Ôn Tập Từ Đến Hạn (SM-2)",
+    dueReviewProgress: "Thẻ {current} / {total}",
+    dueReviewExitBtn: "Thoát Ôn Tập",
+    dueReviewCompleteTitle: "Hoàn Thành Ôn Tập Từ Đến Hạn! 🎉",
+    dueReviewCompleteDesc:
+      "Tất cả các từ vựng đến hạn hôm nay đã được củng cố theo chu kỳ Spaced Repetition (SM-2). Trí nhớ dài hạn của bạn đang được tối ưu hóa!",
+    dueStatTotal: "Tổng thẻ đã ôn",
+    dueStatGood: "Nhớ tốt / Rất dễ",
+    dueStatHard: "Cần ôn sớm / Quên",
+    dueReviewRestart: "Ôn lại phiên này",
+    dueReviewBackToList: "Quay về danh sách",
+    reviewThisCard: "Ôn từ này",
+    onlyDueBadge: "Ôn tập từ đến hạn ({count} từ)",
+    onlyDueBanner: "Học phần này có {count} từ đến hạn ôn tập hôm nay.",
+    onlyDueAction: "Chỉ ôn từ đến hạn",
+    allCardsAction: "Ôn tập toàn bộ ({count} từ)",
+    noDueInSetTitle: "Không có từ nào đến hạn ôn tập! 🎉",
+    noDueInSetDesc:
+      "Học phần này hiện không có từ vựng nào đến hạn ôn tập SM-2 hôm nay.",
   },
 
   // Folders Page
@@ -573,6 +598,9 @@ export const vi = {
     yourAnswer: "Câu trả lời của bạn:",
     noAnswerProvided: "Chưa trả lời",
     correctAnswerLabel: "Đáp án đúng:",
+    termLabel: "Thuật ngữ:",
+    definitionLabel: "Định nghĩa:",
+    isMatchCorrect: "Cặp từ và định nghĩa này có chính xác không?",
     typeYourEnglishAnswer: "Nhập câu trả lời tiếng Anh của bạn...",
     answeredCount: "Đã trả lời: {current} / {total}",
     submitTestBtn: "Nộp bài kiểm tra & Chấm điểm 🚀",

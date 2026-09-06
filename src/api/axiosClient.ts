@@ -1,4 +1,5 @@
 import axios from "axios";
+import { validateRegistrationPayload } from "../utils/authValidation";
 
 const BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
@@ -10,9 +11,24 @@ export const axiosClient = axios.create({
   },
 });
 
-// Request Interceptor: Attach Access Token
+// Request Interceptor: Client-side Validation Middleware & Access Token
 axiosClient.interceptors.request.use(
   (config) => {
+    // Client-side Auth Registration Validation Middleware:
+    // Intercepts and blocks invalid payloads BEFORE sending to network, conserving IP rate-limit attempts
+    if (
+      config.url?.includes("/auth/register") &&
+      config.method?.toLowerCase() === "post" &&
+      config.data
+    ) {
+      const validation = validateRegistrationPayload(config.data);
+      if (!validation.isValid) {
+        return Promise.reject(
+          new Error(validation.firstError || "Thông tin đăng ký không hợp lệ."),
+        );
+      }
+    }
+
     const token = localStorage.getItem("lexiflash_access_token");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;

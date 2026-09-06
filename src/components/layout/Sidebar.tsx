@@ -4,7 +4,6 @@ import { useAppDispatch, useAppSelector } from "../../store/store";
 import { setSidebarOpen, toggleLanguage } from "../../store/slices/uiSlice";
 import {
   Home,
-  Layers,
   Sparkles,
   BookOpen,
   Folder,
@@ -74,7 +73,7 @@ export const Sidebar: React.FC = () => {
       to: "/reviews",
       label: t("sidebar.dueReviews", undefined, "SRS Reviews & Mistakes"),
       icon: BookOpen,
-      badge: dueReviews.length || null,
+      badge: dueReviews.length ? (dueReviews.length > 99 ? "99+" : dueReviews.length) : null,
     },
     {
       to: "/ai-generator",

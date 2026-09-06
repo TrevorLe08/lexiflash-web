@@ -87,6 +87,28 @@
     color: #8e98b0;
     box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.4);
   }
+
+  /* Top Banner Marquee Running Text */
+  @keyframes banner-marquee {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  .animate-marquee {
+    display: inline-block;
+    white-space: nowrap;
+    animation: banner-marquee 25s linear infinite;
+    will-change: transform;
+  }
+
+  .animate-marquee:hover,
+  .animate-marquee:active {
+    animation-play-state: paused;
+  }
 }
 
 /* Custom smooth transitions & mobile touch optimizations */

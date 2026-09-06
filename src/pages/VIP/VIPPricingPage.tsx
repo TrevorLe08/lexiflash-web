@@ -903,7 +903,7 @@ export const VIPPricingPage: React.FC = () => {
               <span className="text-[#939bb4]">
                 {t("vip.modalBankName", undefined, "Ngân hàng:")}
               </span>
-              <strong className="text-white">Vietinbank</strong>
+              <strong className="text-white">Banking</strong>
             </div>
 
             <div className="flex items-center justify-between text-xs pb-1.5 border-b border-[#2e3856]/60">
@@ -911,7 +911,7 @@ export const VIPPricingPage: React.FC = () => {
                 {t("vip.modalAccountNo", undefined, "Số tài khoản:")}
               </span>
               <span className="font-mono font-bold text-amber-300 flex items-center gap-2">
-                <span>1098 8108 9021</span>
+                <span>XXXX XXXX XXXX</span>
                 <button
                   onClick={() =>
                     copyToClipboard(
@@ -931,7 +931,7 @@ export const VIPPricingPage: React.FC = () => {
               <span className="text-[#939bb4]">
                 {t("vip.modalAccountName", undefined, "Chủ tài khoản:")}
               </span>
-              <strong className="text-white">LE TRAN MINH TRIET</strong>
+              <strong className="text-white">LexiFlash Support</strong>
             </div>
 
             <div className="flex items-center justify-between text-xs">

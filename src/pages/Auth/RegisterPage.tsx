@@ -12,6 +12,12 @@ import {
   PasswordStrengthMeter,
   evaluatePassword,
 } from "../../components/common/PasswordStrengthMeter";
+import {
+  validateFullName,
+  validateUsername,
+  validateEmail,
+  validateRegistrationPayload,
+} from "../../utils/authValidation";
 
 export const RegisterPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -24,13 +30,39 @@ export const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  // Field-level validations
+  const nameError = touched.name ? validateFullName(name) : null;
+  const usernameError = touched.username ? validateUsername(username) : null;
+  const emailError = touched.email ? validateEmail(email) : null;
 
   // Password Complexity Validations
   const { isStrong: isPasswordStrong } = evaluatePassword(password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !username || !email || !password) return;
+
+    // Mark all touched
+    setTouched({ name: true, username: true, email: true, password: true });
+
+    // Client-side Validation Guard
+    const validation = validateRegistrationPayload({
+      name,
+      username,
+      email,
+      password,
+    });
+
+    if (!validation.isValid) {
+      dispatch(
+        addToast({
+          message: validation.firstError || "Vui lòng kiểm tra lại thông tin đăng ký.",
+          type: "error",
+        }),
+      );
+      return;
+    }
 
     if (!isPasswordStrong) {
       dispatch(
@@ -47,7 +79,7 @@ export const RegisterPage: React.FC = () => {
     }
 
     const resultAction = await dispatch(
-      registerUser({ name, username, email, password }),
+      registerUser({ name: name.trim(), username: username.trim(), email: email.trim(), password }),
     );
     if (registerUser.fulfilled.match(resultAction)) {
       navigate("/");
@@ -83,6 +115,9 @@ export const RegisterPage: React.FC = () => {
             )}
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
+            error={nameError || undefined}
+            hint={!nameError ? "Họ và tên tối thiểu 2 ký tự" : undefined}
             required
           />
 
@@ -95,6 +130,9 @@ export const RegisterPage: React.FC = () => {
             )}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            onBlur={() => setTouched((prev) => ({ ...prev, username: true }))}
+            error={usernameError || undefined}
+            hint={!usernameError ? "Tối thiểu 2 ký tự, chỉ gồm chữ, số và _" : undefined}
             required
           />
 
@@ -108,6 +146,8 @@ export const RegisterPage: React.FC = () => {
             )}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+            error={emailError || undefined}
             required
           />
 
