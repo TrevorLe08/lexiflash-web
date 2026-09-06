@@ -102,8 +102,6 @@ Tạo file `.env` (hoặc `.env.local`) tại thư mục `client/`:
 VITE_API_URL=http://localhost:5000/api/v1
 ```
 
-> **Khi Deploy:** Thay giá trị này bằng URL Backend thực tế (Ví dụ: `https://lexiflash-backend.onrender.com/api/v1`).
-
 ---
 
 ## 5. Cài Đặt & Khởi Chạy
@@ -157,9 +155,9 @@ npm run preview
 
 ---
 
-## 7. Hướng Dẫn Deploy Frontend (Vercel & Netlify)
+## 7. Hướng Dẫn Deploy Frontend (Vercel)
 
-### 🚀 Triển khai lên Vercel (Khuyên dùng - Nhanh & Miễn phí)
+### 🚀 Triển khai lên Vercel
 1. Đăng nhập vào [Vercel.com](https://vercel.com).
 2. Nhấn **Add New...** ➔ **Project**.
 3. Import kho lưu trữ (Repository) GitHub của dự án LexiFlash.
@@ -170,18 +168,6 @@ npm run preview
    - **Output Directory:** `dist`
 5. Thêm **Environment Variable**:
    - **Key:** `VITE_API_URL`
-   - **Value:** `https://lexiflash-backend.onrender.com/api/v1` (URL Backend đã deploy của bạn)
+   - **Value:** `YOUR_URL_BACKEND` (URL Backend đã deploy của bạn)
 6. Nhấn **Deploy**.
    > *Lưu ý:* File `client/vercel.json` đã có sẵn trong dự án sẽ tự động cấu hình URL Rewrites, giúp tránh triệt để lỗi 404 khi người dùng F5 tải lại các trang như `/profile`, `/sets/123` hay `/admin`.
-
----
-
-### 🌐 Triển khai lên Netlify
-1. Đăng nhập vào [Netlify.com](https://netlify.com).
-2. Chọn **Add new site** ➔ **Import an existing project**.
-3. Chọn repo GitHub ➔ Cấu hình:
-   - **Base directory:** `client`
-   - **Build command:** `npm run build`
-   - **Publish directory:** `client/dist`
-4. Thêm Environment Variable: `VITE_API_URL` = `https://<backend-url>/api/v1`.
-5. Nhấn **Deploy**. File `client/public/_redirects` sẽ tự động chuyển hướng các đường dẫn SPA về `index.html`.
