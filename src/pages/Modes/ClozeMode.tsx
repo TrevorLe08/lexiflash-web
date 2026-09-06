@@ -1,72 +1,66 @@
-  import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { fetchStudySetById } from "../../store/slices/studySetSlice";
+import { recordStudyStreak } from "../../store/slices/authSlice";
+import { studyApi } from "../../api/studyApi";
+import { Card, StudyMode } from "../../types";
+import { useTranslation } from "../../i18n";
 import { Button } from "../../components/common/Button";
 import { AudioButton } from "../../components/study/AudioButton";
-import { triggerConfetti } from "../../utils/confetti";
-import {
-  speakText,
-  getVoiceAccent,
-  toggleVoiceAccent,
-  subscribeVoiceAccent,
-  VoiceAccent,
-} from "../../utils/speech";
-import { StudyHeaderBar } from "../../components/study/StudyHeaderBar";
-import {
-  Volume2,
-  Headphones,
-  CheckCircle2,
-  XCircle,
-  RotateCcw,
-  Trophy,
-  Flame,
-  Clock,
-  SlidersHorizontal,
-  ArrowRight,
-} from "lucide-react";
 import { Spinner } from "../../components/common/Spinner";
 import { EntityNotFound } from "../../components/common/EntityNotFound";
-import { Card, StudyMode } from "../../types";
-import { studyApi } from "../../api/studyApi";
-import { recordStudyStreak } from "../../store/slices/authSlice";
-import { useTranslation } from "../../i18n";
+import { triggerConfetti } from "../../utils/confetti";
+import { StudyHeaderBar } from "../../components/study/StudyHeaderBar";
+import {
+  generateClozeQuestion,
+  checkClozeAnswer,
+  ClozeMatchResult,
+} from "../../utils/clozeMatcher";
+import {
+  PenLine,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  RotateCcw,
+  Flame,
+  Trophy,
+  SlidersHorizontal,
+  ArrowRight,
+  Lightbulb,
+  EyeOff,
+} from "lucide-react";
 
-interface IncorrectSubmission {
-  card: Card;
-  userAnswer: string;
+interface ClozeFeedback {
+  isCorrect: boolean;
+  correctWord: string;
+  matchedWord: string;
 }
 
-export const WriteMode: React.FC = () => {
+export const ClozeMode: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const dispatch = useAppDispatch();
   const { t } = useTranslation();
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const { currentSet, loading } = useAppSelector((state) => state.studySets);
+  const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const { currentSet, loading } = useAppSelector((state) => state.studySets);
 
+  // Session States
   const [cards, setCards] = useState<Card[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
-  const [feedback, setFeedback] = useState<{
-    isCorrect: boolean;
-    expected: string;
-  } | null>(null);
-
+  const [feedback, setFeedback] = useState<ClozeFeedback | null>(null);
   const [correctCards, setCorrectCards] = useState<Card[]>([]);
-  const [incorrectCards, setIncorrectCards] = useState<IncorrectSubmission[]>([]);
+  const [incorrectCards, setIncorrectCards] = useState<
+    Array<{ card: Card; userAnswer: string }>
+  >([]);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [accent, setAccent] = useState<VoiceAccent>(getVoiceAccent());
   const [timeSpentSeconds, setTimeSpentSeconds] = useState(0);
+  const [startTime, setStartTime] = useState<number>(Date.now);
+  const [showHint, setShowHint] = useState(false);
 
-  const startTimeRef = useRef<number>(Date.now());
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    return subscribeVoiceAccent(setAccent);
-  }, []);
-
+  // Fetch Study Set
   useEffect(() => {
     if (id) {
       dispatch(fetchStudySetById(id));
@@ -107,96 +101,52 @@ export const WriteMode: React.FC = () => {
     setCorrectCards([]);
     setIncorrectCards([]);
     setIsCompleted(false);
-    startTimeRef.current = Date.now();
+    setStartTime(Date.now());
     setTimeSpentSeconds(0);
+    setShowHint(false);
     setIsConfiguring(false);
   };
 
-  // Timer
-  useEffect(() => {
-    if (isCompleted) return;
-    const timer = setInterval(() => {
-      setTimeSpentSeconds(
-        Math.max(0, Math.floor((Date.now() - startTimeRef.current) / 1000))
-      );
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [isCompleted]);
+  const currentCard = cards[currentIndex];
 
-  // Focus input on card change
+  // Generate Cloze Data from current card using intelligent matcher (supports irregular verbs & split collocations)
+  const clozeData: ClozeMatchResult | null = useMemo(() => {
+    if (!currentCard) return null;
+    return generateClozeQuestion(
+      currentCard.term,
+      currentCard.example,
+      currentCard.definition,
+      t
+    );
+  }, [currentCard, t]);
+
+  // Focus input on question change
   useEffect(() => {
-    if (!feedback && !isCompleted && inputRef.current) {
-      inputRef.current.focus();
+    if (!feedback && !isCompleted) {
+      inputRef.current?.focus();
     }
   }, [currentIndex, feedback, isCompleted]);
 
-  const currentCard = cards[currentIndex];
-
-  const playCurrentAudio = () => {
-    if (!currentCard) return;
-    setIsPlayingAudio(true);
-    speakText(currentCard.term, accent);
-    setTimeout(() => setIsPlayingAudio(false), 1200);
-  };
-
-  // Auto play audio when transitioning to next card
+  // Session timer
   useEffect(() => {
-    if (currentCard && !feedback && !isCompleted) {
-      const timer = setTimeout(() => {
-        playCurrentAudio();
-      }, 250);
-      return () => clearTimeout(timer);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, isCompleted]);
+    if (isCompleted) return;
+    const interval = setInterval(() => {
+      setTimeSpentSeconds(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isCompleted, startTime]);
 
-  if (!isAuthenticated) {
-    return (
-      <div className="max-w-md mx-auto py-16 text-center space-y-4 animate-fade-in">
-        <Headphones className="w-12 h-12 text-[#6366F1] mx-auto" />
-        <h2 className="text-2xl font-bold text-white">
-          {t("auth.loginTitle", undefined, "Log in to use Listening & Dictation")}
-        </h2>
-        <p className="text-sm text-[#939bb4]">
-          {t(
-            "modes.writeInstructions",
-            undefined,
-            "Listening & Dictation Mode trains your native listening reflex and exact spelling accuracy.",
-          )}
-        </p>
-        <div className="flex justify-center gap-3 pt-2">
-          <Link to={`/sets/${id}/flashcards`}>
-            <Button variant="secondary" size="md">
-              {t("modes.flashcardsTitle", undefined, "Try Flashcards Free")}
-            </Button>
-          </Link>
-          <Link to="/login">
-            <Button variant="primary" size="md">
-              {t("nav.login", undefined, "Log In Now")}
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Check Answer Handler
+  const handleCheck = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!userAnswer.trim() || feedback || !clozeData) return;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!userAnswer.trim() || !currentCard || feedback) return;
-
-    const normalizedUser = userAnswer
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "");
-    const normalizedExpected = currentCard.term
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "");
-
-    const isCorrect = normalizedUser === normalizedExpected;
+    // Intelligent check against acceptable answers (base term, inflected form, context phrase)
+    const isCorrect = checkClozeAnswer(userAnswer, clozeData);
 
     if (isCorrect) {
       setCorrectCards((prev) => [...prev, currentCard]);
+      triggerConfetti();
     } else {
       setIncorrectCards((prev) => [
         ...prev,
@@ -204,14 +154,20 @@ export const WriteMode: React.FC = () => {
       ]);
     }
 
-    setFeedback({ isCorrect, expected: currentCard.term });
+    setFeedback({
+      isCorrect,
+      correctWord: clozeData.targetWord,
+      matchedWord: clozeData.matchedWord,
+    });
   };
 
+  // Next Question Handler
   const handleNext = async () => {
-    setFeedback(null);
     setUserAnswer("");
+    setFeedback(null);
+    setShowHint(false);
 
-    if (currentIndex < cards.length - 1) {
+    if (currentIndex + 1 < cards.length) {
       setCurrentIndex((prev) => prev + 1);
     } else {
       setIsCompleted(true);
@@ -220,17 +176,17 @@ export const WriteMode: React.FC = () => {
       if (isAuthenticated && id) {
         const timeSpent = Math.max(
           1,
-          Math.round((Date.now() - startTimeRef.current) / 1000)
+          Math.round((Date.now() - startTime) / 1000)
         );
 
         const correctIds = correctCards.map((c) => c.id);
         const incorrectIds = incorrectCards.map((item) => item.card.id);
 
         try {
-          // 1. Record session & Mistake Bank in backend
+          // 1. Record session with mode CLOZE
           await studyApi.recordSession({
             studySetId: id,
-            mode: StudyMode.WRITE,
+            mode: StudyMode.CLOZE,
             cardsTotal: cards.length,
             cardsCorrect: correctCards.length,
             cardsIncorrect: incorrectCards.length,
@@ -239,23 +195,42 @@ export const WriteMode: React.FC = () => {
             incorrectCardIds: incorrectIds,
           });
 
-          // 2. Guaranteed streak update & streak notification
+          // 2. Guaranteed streak update & notification
           await dispatch(recordStudyStreak());
         } catch (err) {
-          console.error("Error saving session and streak:", err);
+          console.error("Error saving cloze session and streak:", err);
         }
       }
     }
   };
 
+  const handleNextRef = useRef(handleNext);
+  useEffect(() => {
+    handleNextRef.current = handleNext;
+  });
+
+  // Keyboard navigation for Enter key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (feedback && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        handleNextRef.current();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [feedback]);
+
   const handleRestart = () => {
     setCurrentIndex(0);
     setUserAnswer("");
     setFeedback(null);
+    setShowHint(false);
     setCorrectCards([]);
     setIncorrectCards([]);
     setIsCompleted(false);
-    startTimeRef.current = Date.now();
+    setStartTime(Date.now());
     setTimeSpentSeconds(0);
   };
 
@@ -270,9 +245,9 @@ export const WriteMode: React.FC = () => {
       <Spinner
         size="lg"
         label={t(
-          "modes.loadingDictation",
+          "modes.loadingCloze",
           undefined,
-          "Loading Dictation Mode...",
+          "Đang tải chế độ Điền từ chỗ trống..."
         )}
         className="py-24"
       />
@@ -286,10 +261,10 @@ export const WriteMode: React.FC = () => {
   if (currentSet && totalCards === 0) {
     return (
       <div className="max-w-md mx-auto py-16 text-center space-y-4 animate-fade-in">
-        <Headphones className="w-12 h-12 text-[#6366F1] mx-auto opacity-50" />
+        <PenLine className="w-12 h-12 text-cyan-400 mx-auto opacity-50" />
         <h2 className="text-xl font-bold text-white">Học phần chưa có từ vựng</h2>
         <p className="text-sm text-[#939bb4]">
-          Vui lòng thêm thẻ từ vựng vào học phần trước khi luyện nghe & viết chính tả.
+          Vui lòng thêm thẻ từ vựng vào học phần trước khi luyện điền từ chỗ trống.
         </p>
         <Link to={`/sets/${id}`}>
           <Button variant="primary">Quay về học phần</Button>
@@ -311,12 +286,12 @@ export const WriteMode: React.FC = () => {
         <div className="bg-[#12162a] border border-[#252b48] rounded-2xl sm:rounded-3xl p-4 sm:p-8 space-y-6 sm:space-y-8 shadow-2xl">
           {/* Header */}
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#818cf8] flex items-center justify-center text-white shadow-lg shrink-0">
-              <Headphones className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shrink-0">
+              <PenLine className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-lg sm:text-2xl font-black text-white leading-snug">
-                Thiết lập phiên Nghe & Viết chính tả
+                Thiết lập phiên Điền từ chỗ trống
               </h2>
               <p className="text-xs sm:text-sm text-[#939bb4] truncate mt-0.5">
                 {currentSet?.title} • {totalCards} từ vựng
@@ -335,7 +310,7 @@ export const WriteMode: React.FC = () => {
                   (Tối đa {totalCards} câu)
                 </span>
               </div>
-              <span className="text-xs sm:text-sm font-bold font-mono text-[#818cf8]">
+              <span className="text-xs sm:text-sm font-bold font-mono text-cyan-400">
                 {questionCount} câu
               </span>
             </div>
@@ -355,8 +330,8 @@ export const WriteMode: React.FC = () => {
                     }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                       isSelected
-                        ? "bg-[#6366F1] border-[#818cf8] text-white shadow-md shadow-indigo-500/20"
-                        : "bg-[#1a2035] border-[#252b48] text-[#939bb4] hover:text-white hover:border-[#818cf8]/40"
+                        ? "bg-cyan-600 border-cyan-400 text-white shadow-md shadow-cyan-500/20"
+                        : "bg-[#1a2035] border-[#252b48] text-[#939bb4] hover:text-white hover:border-cyan-400/40"
                     }`}
                   >
                     {preset} câu
@@ -371,8 +346,8 @@ export const WriteMode: React.FC = () => {
                 }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                   questionCount === totalCards
-                    ? "bg-[#6366F1] border-[#818cf8] text-white shadow-md shadow-indigo-500/20"
-                    : "bg-[#1a2035] border-[#252b48] text-[#939bb4] hover:text-white hover:border-[#818cf8]/40"
+                    ? "bg-cyan-600 border-cyan-400 text-white shadow-md shadow-cyan-500/20"
+                    : "bg-[#1a2035] border-[#252b48] text-[#939bb4] hover:text-white hover:border-cyan-400/40"
                 }`}
               >
                 Tất cả ({totalCards} câu)
@@ -394,7 +369,7 @@ export const WriteMode: React.FC = () => {
                   setQuestionCount(val);
                   setCountInput(String(val));
                 }}
-                className="flex-1 accent-[#6366F1] cursor-pointer h-2 bg-[#1a2035] rounded-lg"
+                className="flex-1 accent-cyan-400 cursor-pointer h-2 bg-[#1a2035] rounded-lg"
               />
               <input
                 type="text"
@@ -425,7 +400,7 @@ export const WriteMode: React.FC = () => {
                   }
                 }}
                 placeholder="1"
-                className="w-14 sm:w-16 px-2 py-1.5 rounded-xl bg-[#1a2035] border border-[#252b48] text-white font-mono text-center text-sm font-bold focus:outline-none focus:border-[#6366F1] shrink-0"
+                className="w-14 sm:w-16 px-2 py-1.5 rounded-xl bg-[#1a2035] border border-[#252b48] text-white font-mono text-center text-sm font-bold focus:outline-none focus:border-cyan-400 shrink-0"
               />
             </div>
           </div>
@@ -435,7 +410,7 @@ export const WriteMode: React.FC = () => {
             variant="primary"
             size="lg"
             onClick={handleStartPractice}
-            className="w-full flex items-center justify-center gap-2 text-sm sm:text-base font-bold py-3.5 shadow-lg shadow-indigo-500/25 whitespace-nowrap"
+            className="w-full flex items-center justify-center gap-2 text-sm sm:text-base font-bold py-3.5 shadow-lg shadow-cyan-500/25 bg-cyan-600 hover:bg-cyan-500 border-cyan-500 whitespace-nowrap"
             icon={<ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />}
           >
             <span>Bắt đầu luyện tập</span>
@@ -471,7 +446,7 @@ export const WriteMode: React.FC = () => {
         {/* Sub-bar with Timer and Score count */}
         <div className="flex items-center justify-between text-xs text-[#939bb4] px-1">
           <div className="flex items-center gap-1.5 bg-[#1a1d36] border border-[#2e3856] text-white px-3 py-1 rounded-full font-mono font-bold">
-            <Clock className="w-3.5 h-3.5 text-[#6366F1]" />
+            <Clock className="w-3.5 h-3.5 text-[#06B6D4]" />
             <span>{formatTime(timeSpentSeconds)}</span>
           </div>
 
@@ -482,7 +457,7 @@ export const WriteMode: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Study Area */}
+      {/* Main Content Area */}
       {isCompleted ? (
         /* Results & Mistake Bank Breakdown View */
         <div className="space-y-6 animate-scale-up">
@@ -493,7 +468,7 @@ export const WriteMode: React.FC = () => {
 
             <div className="space-y-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#939bb4]">
-                {t("modes.yourTestScore", undefined, "Your Session Score")}
+                {t("modes.yourTestScore", undefined, "Điểm Phiên Học Của Bạn")}
               </span>
               <h2 className="text-4xl sm:text-5xl font-black text-white">
                 {scorePercentage}%
@@ -514,12 +489,12 @@ export const WriteMode: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4" />
-                    {t("modes.dictationCorrectTerms", {
+                    {t("modes.clozeCorrectTerms", {
                       count: correctCards.length,
                     })}
                   </span>
                   <span className="text-[10px] text-emerald-400/90 font-semibold bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded">
-                    {t("modes.mistakeReduced", undefined, "Mistakes -1")}
+                    {t("modes.mistakeReduced", undefined, "Lỗi -1")}
                   </span>
                 </div>
 
@@ -544,7 +519,7 @@ export const WriteMode: React.FC = () => {
                   </div>
                 ) : (
                   <p className="text-xs text-[#939bb4] italic py-2">
-                    {t("common.none", undefined, "None")}
+                    {t("common.none", undefined, "Không có")}
                   </p>
                 )}
               </div>
@@ -554,13 +529,13 @@ export const WriteMode: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
                     <XCircle className="w-4 h-4" />
-                    {t("modes.dictationIncorrectTerms", {
+                    {t("modes.clozeIncorrectTerms", {
                       count: incorrectCards.length,
                     })}
                   </span>
                   <span className="text-[10px] text-rose-400/90 font-semibold bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded flex items-center gap-1">
                     <Flame className="w-3 h-3" />
-                    {t("modes.mistakeIncreased", undefined, "Mistakes +1")}
+                    {t("modes.mistakeIncreased", undefined, "Lỗi +1")}
                   </span>
                 </div>
 
@@ -578,10 +553,10 @@ export const WriteMode: React.FC = () => {
                           <AudioButton text={item.card.term} size="sm" />
                         </div>
                         <div className="text-xs text-[#939bb4]">
-                          {t("modes.yourAnswer", undefined, "Your answer:")}{" "}
+                          {t("modes.yourAnswer", undefined, "Câu trả lời của bạn:")}{" "}
                           <span className="line-through text-rose-300 font-mono">
                             {item.userAnswer ||
-                              t("modes.emptyAnswer", undefined, "(empty)")}
+                              t("modes.emptyAnswer", undefined, "(trống)")}
                           </span>
                         </div>
                         <p className="text-xs text-[#8e98b0] truncate">
@@ -595,14 +570,14 @@ export const WriteMode: React.FC = () => {
                     {t(
                       "modes.perfectNoMistakes",
                       undefined,
-                      "Perfect! No mistakes recorded. 🎉"
+                      "Xuất sắc! Không mắc lỗi nào 🎉"
                     )}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Actions */}
+            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row justify-center gap-3 pt-4 border-t border-[#2e3856]">
               <Button
                 variant="secondary"
@@ -610,7 +585,7 @@ export const WriteMode: React.FC = () => {
                 onClick={handleRestart}
                 icon={<RotateCcw className="w-4 h-4" />}
               >
-                {t("modes.studyAgain", undefined, "Study Again")}
+                {t("modes.studyAgain", undefined, "Học lại lần nữa")}
               </Button>
 
               <Button
@@ -624,100 +599,93 @@ export const WriteMode: React.FC = () => {
 
               <Link to={`/sets/${id}`}>
                 <Button variant="primary" size="lg">
-                  {t("modes.backToSet", undefined, "Back to Set")}
+                  {t("modes.backToSet", undefined, "Quay lại Học phần")}
                 </Button>
               </Link>
             </div>
           </div>
         </div>
-      ) : currentCard ? (
-        /* Question & Dictation View */
+      ) : currentCard && clozeData ? (
+        /* Question View */
         <div className="bg-[#1a1d36] border border-[#2e3856] rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-          {/* Prompt Header & Accent Settings */}
-          <div className="flex items-center justify-between gap-2 text-xs text-[#939bb4] border-b border-[#2e3856] pb-3">
-            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              <Headphones className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="font-semibold text-white truncate sm:whitespace-normal">
-                {t(
-                  "modes.dictationPrompt",
-                  undefined,
-                  "Listen to pronunciation and type the word"
-                )}
+          {/* Prompt Header */}
+          <div className="flex items-center gap-1.5 text-xs text-[#939bb4] border-b border-[#2e3856] pb-3">
+            <PenLine className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span className="font-semibold text-white">
+              {t(
+                "modes.clozePrompt",
+                undefined,
+                "Đọc câu ngữ cảnh và điền từ thích hợp vào chỗ trống"
+              )}
+            </span>
+          </div>
+
+          {/* Prompt Card with ______ Blank (According to User Directive for Edge Case 6) */}
+          <div className="py-6 sm:py-8 flex flex-col items-center justify-center text-center px-2 sm:px-6 bg-[#131722]/60 rounded-2xl border border-[#2e3856]/60 shadow-inner">
+            {/* Sentence with _______ blank */}
+            <div className="text-lg sm:text-2xl font-bold text-white leading-relaxed tracking-wide">
+              <span>{clozeData.prefix}</span>
+              <span className="inline-block mx-1 px-3 py-0.5 rounded-lg bg-cyan-500/20 border-b-2 border-cyan-400 text-cyan-300 font-mono font-black tracking-widest">
+                ______
               </span>
+              <span>{clozeData.suffix}</span>
             </div>
 
-            <button
-              type="button"
-              onClick={toggleVoiceAccent}
-              className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#1e233d] hover:bg-[#2b3553] text-[#9cb1ff] hover:text-white text-xs font-semibold border border-[#3b476b] hover:border-emerald-400/50 transition-all cursor-pointer shadow-sm select-none"
-              title={t(
-                "modes.switchVoiceAccent",
-                undefined,
-                "Switch Voice Accent (UK / US)",
-              )}
-            >
-              <Volume2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span className="font-mono font-bold">
-                {accent === "en-GB" ? "UK" : "US"}
-              </span>
-            </button>
+            {/* Hint Button & Vietnamese Definition (revealed on click) */}
+            {currentCard.definition && (
+              !showHint ? (
+                <button
+                  type="button"
+                  onClick={() => setShowHint(true)}
+                  className="mt-4 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 hover:text-amber-300 border border-amber-500/30 hover:border-amber-400/50 text-xs font-semibold transition-all cursor-pointer select-none"
+                >
+                  <Lightbulb className="w-3.5 h-3.5" />
+                  <span>Xem gợi ý nghĩa</span>
+                </button>
+              ) : (
+                <div className="mt-4 animate-fade-in inline-flex items-center justify-between gap-2 px-4 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 shadow-sm max-w-lg text-left">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-amber-400 mr-1">Gợi ý nghĩa:</span>
+                      <span className="text-white font-medium">{currentCard.definition}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowHint(false)}
+                    className="text-amber-400/70 hover:text-amber-200 p-0.5 rounded-md hover:bg-amber-500/20 shrink-0 ml-1 cursor-pointer transition-colors"
+                    title="Ẩn gợi ý"
+                  >
+                    <EyeOff className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )
+            )}
           </div>
 
-          {/* Central Audio Prominence (NO DEFINITION, NO PHONETIC) */}
-          <div className="py-6 sm:py-8 flex flex-col items-center justify-center space-y-4 text-center">
-            {/* Big 3D Audio Trigger Button */}
-            <button
-              type="button"
-              onClick={playCurrentAudio}
-              className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center cursor-pointer transition-all duration-100 ease-out transform-gpu will-change-transform ${
-                isPlayingAudio
-                  ? "bg-[#5457e5] border-2 border-[#7c7ef8] text-white shadow-[0_1px_0_0_#3739a8] translate-y-[3px]"
-                  : "bg-[#6366F1] hover:bg-[#5457e5] border-2 border-[#7c7ef8] text-white shadow-[0_4px_0_0_#3739a8] translate-y-0 active:translate-y-[3px] active:shadow-[0_1px_0_0_#3739a8]"
-              }`}
-              title={t(
-                "modes.listenAgainHint",
-                undefined,
-                "Click the speaker to replay audio",
-              )}
-            >
-              <Volume2
-                className={`w-12 h-12 sm:w-14 sm:h-14 ${
-                  isPlayingAudio ? "animate-pulse scale-110" : ""
-                }`}
-              />
-            </button>
-
-            <p className="text-sm font-bold text-white">
-              {t(
-                "modes.listenAgainHint",
-                undefined,
-                "Click the speaker to replay audio",
-              )}
-            </p>
-          </div>
-
-          {/* Form / Answer Input */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Form / Answer Input (Regular input without syncing into the blank text) */}
+          <form onSubmit={handleCheck} className="space-y-4">
             <div className="relative">
               <input
                 ref={inputRef}
                 type="text"
                 disabled={!!feedback}
                 placeholder={t(
-                  "modes.typeAnswerPlaceholder",
+                  "modes.clozeInputPlaceholder",
                   undefined,
-                  "Type what you hear...",
+                  "Gõ từ còn thiếu vào đây..."
                 )}
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
-                className="w-full bg-[#0a092d] text-white placeholder-[#586380] border-2 border-[#2e3856] focus:border-[#6366F1] rounded-2xl px-5 py-4 text-center text-lg sm:text-xl font-bold tracking-wide focus:outline-none transition-colors shadow-inner"
+                className="w-full bg-[#0a092d] text-white placeholder-[#586380] border-2 border-[#2e3856] focus:border-cyan-400 rounded-2xl px-5 py-4 text-center text-lg sm:text-xl font-bold tracking-wide focus:outline-none transition-colors shadow-inner"
                 autoComplete="off"
                 autoCapitalize="off"
                 spellCheck="false"
               />
             </div>
 
-            {/* Feedback Box (Only displayed AFTER checking answer) */}
+            {/* Feedback Box (Revealed after check) */}
             {feedback && (
               <div
                 className={`p-5 rounded-2xl border text-center space-y-3 animate-fade-in ${
@@ -734,7 +702,7 @@ export const WriteMode: React.FC = () => {
                         {t(
                           "modes.correctWellDone",
                           undefined,
-                          "Correct! Well done. ✨",
+                          "Chính xác! Xuất sắc lắm. ✨"
                         )}
                       </span>
                     </>
@@ -745,7 +713,7 @@ export const WriteMode: React.FC = () => {
                         {t(
                           "modes.incorrectCorrectIs",
                           undefined,
-                          "Incorrect! The correct spelling is:",
+                          "Chưa chính xác! Chính tả đúng là:"
                         )}
                       </span>
                     </>
@@ -755,7 +723,7 @@ export const WriteMode: React.FC = () => {
                 {/* Incorrect comparison */}
                 {!feedback.isCorrect && (
                   <div className="text-sm text-rose-300">
-                    {t("modes.yourAnswer", undefined, "Your answer:")}{" "}
+                    {t("modes.yourAnswer", undefined, "Câu trả lời của bạn:")}{" "}
                     <span className="line-through font-mono font-bold">
                       {userAnswer}
                     </span>
@@ -775,12 +743,20 @@ export const WriteMode: React.FC = () => {
                       <AudioButton text={currentCard.term} size="sm" />
                     </div>
                   )}
+
+                  {/* Context Form revelation if different from base term */}
+                  {clozeData.matchedWord.toLowerCase() !== currentCard.term.toLowerCase() && (
+                    <div className="text-xs text-cyan-300 font-mono pt-1">
+                      {t("modes.contextForm", undefined, "Dạng trong câu ví dụ:")}{" "}
+                      <strong className="underline decoration-cyan-400/50">{clozeData.matchedWord}</strong>
+                    </div>
+                  )}
                 </div>
 
-                {/* Definition Revelation (Unlocked for learning reinforcement) */}
+                {/* Definition Revelation */}
                 <div className="pt-1 border-t border-white/10 text-xs sm:text-sm text-gray-300 italic">
                   <span className="font-bold text-white not-italic mr-1">
-                    {t("modes.revealedDefinition", undefined, "Definition:")}
+                    {t("modes.revealedDefinition", undefined, "Định nghĩa:")}
                   </span>
                   {currentCard.definition}
                 </div>
@@ -792,7 +768,7 @@ export const WriteMode: React.FC = () => {
                       {t(
                         "modes.willAddToMistakeBank",
                         undefined,
-                        "Added to Mistake Bank",
+                        "Đã lưu vào Ngân hàng lỗi sai"
                       )}
                     </span>
                   </div>
@@ -804,7 +780,7 @@ export const WriteMode: React.FC = () => {
                   onClick={handleNext}
                   className="w-full mt-2"
                 >
-                  {t("modes.continueBtn", undefined, "Continue")}
+                  {t("modes.continueBtn", undefined, "Tiếp tục")}
                 </Button>
               </div>
             )}
@@ -812,15 +788,30 @@ export const WriteMode: React.FC = () => {
             {!feedback && (
               <Button
                 type="submit"
-                variant="primary"
+                variant="cyan"
                 size="lg"
                 disabled={!userAnswer.trim()}
                 className="w-full"
               >
-                {t("modes.checkAnswerBtn", undefined, "Check Answer")}
+                {t("modes.checkAnswerBtn", undefined, "Kiểm tra đáp án")}
               </Button>
             )}
           </form>
+        </div>
+      ) : cards.length === 0 ? (
+        <div className="text-center py-16 bg-[#1a1d36] rounded-2xl border border-[#2e3856] space-y-4">
+          <p className="text-[#939bb4]">
+            {t(
+              "modes.noCardsInSet",
+              undefined,
+              "Học phần này chưa có thẻ từ vựng nào."
+            )}
+          </p>
+          <Link to={`/sets/${id}`}>
+            <Button variant="primary">
+              {t("modes.backToSet", undefined, "Quay lại Học phần")}
+            </Button>
+          </Link>
         </div>
       ) : null}
     </div>

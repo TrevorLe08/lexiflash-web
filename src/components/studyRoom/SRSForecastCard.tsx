@@ -49,20 +49,20 @@ export const SRSForecastCard: React.FC<SRSForecastCardProps> = ({
   return (
     <div className="bg-[#161926] border border-white/[0.08] rounded-2xl p-5 sm:p-7 shadow-xs space-y-6 flex flex-col justify-between">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 flex items-center justify-center shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 flex items-center justify-center shrink-0">
             <BrainCircuit className="w-5 h-5" />
           </div>
-          <div>
-            <h2 className="text-lg sm:text-xl font-black text-white">
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-lg lg:text-xl font-black text-white leading-tight">
               {t(
                 "studyRoom.forecastTitle",
                 undefined,
                 "Dự báo ôn tập SRS (7 ngày)",
               )}
             </h2>
-            <p className="text-xs text-[#8e98b0]">
+            <p className="text-xs text-[#8e98b0] line-clamp-1">
               {t(
                 "studyRoom.forecastSubtitle",
                 undefined,
@@ -74,7 +74,7 @@ export const SRSForecastCard: React.FC<SRSForecastCardProps> = ({
 
         <Link
           to="/reviews"
-          className="text-xs font-bold text-[#9cb1ff] hover:text-white flex items-center gap-1 hover:translate-x-0.5 transition-all"
+          className="self-end sm:self-center text-xs font-bold text-[#9cb1ff] hover:text-white flex items-center gap-1 hover:translate-x-0.5 transition-all shrink-0"
         >
           <span>{t("studyRoom.allReviewsLink", undefined, "Xem toàn bộ")}</span>
           <ArrowRight className="w-3.5 h-3.5" />
@@ -82,8 +82,8 @@ export const SRSForecastCard: React.FC<SRSForecastCardProps> = ({
       </div>
 
       {/* 7-Day Bar Chart */}
-      <div className="bg-[#141824] border border-white/[0.08] rounded-xl p-4 sm:p-5">
-        <div className="h-44 flex items-end justify-between gap-2 sm:gap-4 pt-6 pb-2">
+      <div className="bg-[#141824] border border-white/[0.08] rounded-xl p-3 sm:p-5">
+        <div className="h-44 flex items-end justify-between gap-1 sm:gap-4 pt-6 pb-2">
           {srsForecast.map((day) => {
             const heightPercent = Math.max(
               8,
@@ -97,7 +97,7 @@ export const SRSForecastCard: React.FC<SRSForecastCardProps> = ({
               >
                 {/* Count Badge on Hover / Active */}
                 <div
-                  className={`text-[11px] font-black font-mono mb-1.5 transition-transform ${
+                  className={`text-[10px] sm:text-[11px] font-black font-mono mb-1.5 transition-transform ${
                     day.isToday
                       ? "text-amber-400 scale-110"
                       : "text-[#8e98b0] group-hover:text-white"
@@ -123,13 +123,13 @@ export const SRSForecastCard: React.FC<SRSForecastCardProps> = ({
                 {/* Day Labels */}
                 <div className="text-center mt-2.5 space-y-0.5">
                   <span
-                    className={`text-[11px] font-bold block ${
+                    className={`text-[10px] sm:text-[11px] font-bold block whitespace-nowrap ${
                       day.isToday ? "text-amber-300" : "text-[#8e98b0]"
                     }`}
                   >
                     {formatDayLabel(day.date, day.isToday)}
                   </span>
-                  <span className="text-[10px] text-[#545d78] block font-mono">
+                  <span className="text-[9px] sm:text-[10px] text-[#545d78] block font-mono whitespace-nowrap">
                     {formatDateShort(day.date)}
                   </span>
                 </div>

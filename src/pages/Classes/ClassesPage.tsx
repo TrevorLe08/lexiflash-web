@@ -185,23 +185,25 @@ export const ClassesPage: React.FC = () => {
           className="py-20"
         />
       ) : classes.length === 0 ? (
-        <div className="text-center py-16 bg-[#1a1d36]/50 rounded-3xl border border-[#2e3856] space-y-4">
-          <Users className="w-12 h-12 text-[#586380] mx-auto" />
-          <h3 className="text-lg font-bold text-white">
+        <div className="text-center py-16 px-4 sm:px-8 bg-[#1a1d36]/50 rounded-3xl border border-[#2e3856] space-y-4 max-w-xl mx-auto">
+          <div className="w-16 h-16 rounded-2xl bg-[#6366F1]/10 border border-[#6366F1]/20 text-[#818cf8] flex items-center justify-center mx-auto shadow-inner">
+            <Users className="w-8 h-8" />
+          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-white">
             {t("classes.noClassesTitle", undefined, "No study groups yet")}
           </h3>
-          <p className="text-sm text-[#939bb4]">
+          <p className="text-sm text-[#939bb4] max-w-md mx-auto leading-relaxed">
             {t(
               "classes.noClassesDesc",
               undefined,
               "Create a group for your study partners or join an existing study group with an invitation code.",
             )}
           </p>
-          <div className="flex justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-3 pt-2">
             <Button variant="secondary" onClick={() => setJoinModalOpen(true)}>
               {t("classes.joinByCodeBtn", undefined, "Join with Code")}
             </Button>
-            <Button variant="primary" onClick={() => setCreateModalOpen(true)}>
+            <Button variant="primary" onClick={() => setCreateModalOpen(true)} icon={<Plus className="w-4 h-4" />}>
               {t("classes.createGroupBtn", undefined, "Create Group")}
             </Button>
           </div>

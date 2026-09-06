@@ -105,7 +105,7 @@ export const Sidebar: React.FC = () => {
       {/* Backdrop for screens < 1280px (mobile, tablet, half-screen desktop) */}
       {isOpen && (
         <div
-          className="fixed inset-x-0 top-16 bottom-0 bg-black/60 backdrop-blur-xs z-30 xl:hidden"
+          className="fixed inset-x-0 top-16 bottom-0 bg-black/70 z-30 xl:hidden"
           onClick={closeSidebar}
         />
       )}

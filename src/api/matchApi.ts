@@ -1,11 +1,15 @@
 import { axiosClient } from "./axiosClient";
-import { MatchGameCard, MatchLeaderboardEntry, ApiResponse } from "../types";
+import {
+  MatchLeaderboardEntry,
+  MatchTilesResponse,
+  ApiResponse,
+} from "../types";
 
 export const matchApi = {
   getTiles: (
     setId: string,
     pairCount = 6,
-  ): Promise<ApiResponse<{ tiles: MatchGameCard[]; totalPairs: number }>> => {
+  ): Promise<ApiResponse<MatchTilesResponse>> => {
     return axiosClient.get(`/match/sets/${setId}/tiles`, {
       params: { pairCount },
     });
@@ -13,7 +17,11 @@ export const matchApi = {
 
   submitScore: (
     setId: string,
-    data: { timeRecordMs: number; matchedPairs: number },
+    data: {
+      timeRecordMs: number;
+      matchedPairs: number;
+      sessionToken: string;
+    },
   ): Promise<
     ApiResponse<{ entry: MatchLeaderboardEntry; isNewPersonalBest: boolean }>
   > => {

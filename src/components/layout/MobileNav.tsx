@@ -49,7 +49,7 @@ export const MobileNav: React.FC = () => {
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#131722]/95 backdrop-blur-xl border-t border-white/[0.08] px-2 py-1 pb-[max(0.375rem,env(safe-area-inset-bottom))]"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#131722] border-t border-white/[0.08] px-2 py-1 pb-[max(0.375rem,env(safe-area-inset-bottom))]"
     >
       <div className="grid grid-cols-5 items-center justify-items-center max-w-md mx-auto">
         {items.map((item) => {

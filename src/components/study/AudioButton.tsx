@@ -14,6 +14,7 @@ interface AudioButtonProps {
   className?: string;
   size?: "sm" | "md" | "lg";
   showAccentToggle?: boolean;
+  disabled?: boolean;
 }
 
 export const AudioButton: React.FC<AudioButtonProps> = ({
@@ -21,6 +22,7 @@ export const AudioButton: React.FC<AudioButtonProps> = ({
   className,
   size = "md",
   showAccentToggle = false,
+  disabled = false,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [accent, setAccent] = useState<VoiceAccent>(getVoiceAccent());
@@ -58,9 +60,12 @@ export const AudioButton: React.FC<AudioButtonProps> = ({
       <button
         type="button"
         onClick={handlePlay}
-        title={`Phát âm (${accent === "en-GB" ? "Anh - Anh 🇬🇧" : "Anh - Mỹ 🇺🇸"})`}
+        disabled={disabled}
+        title={disabled ? undefined : `Phát âm (${accent === "en-GB" ? "Anh - Anh 🇬🇧" : "Anh - Mỹ 🇺🇸"})`}
         className={cn(
-          "rounded-full bg-[#2e3856]/80 hover:bg-[#4257B2] text-[#d9dde8] hover:text-white border border-[#3c476c] hover:border-transparent transition-all duration-200 active:scale-90 cursor-pointer shadow-sm",
+          "rounded-full bg-[#2e3856]/80 text-[#d9dde8] border border-[#3c476c] transition-all duration-200 shadow-sm",
+          !disabled && "hover:bg-[#4257B2] hover:text-white hover:border-transparent active:scale-90 cursor-pointer",
+          disabled && "opacity-40 pointer-events-none cursor-not-allowed",
           sizeClasses[size],
           isPlaying &&
             "bg-[#4257B2] text-white ring-2 ring-[#4257B2]/50 scale-105",
@@ -74,10 +79,16 @@ export const AudioButton: React.FC<AudioButtonProps> = ({
         <button
           type="button"
           onClick={handleToggleAccent}
-          title="Bấm để đổi giữa giọng Anh - Mỹ 🇺🇸 và Anh - Anh 🇬🇧"
-          className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-white/[0.06] hover:bg-white/[0.12] text-[#8e98b0] hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+          disabled={disabled}
+          title={disabled ? undefined : `Bấm để đổi giọng đọc (Hiện tại: ${accent === "en-GB" ? "Anh - Anh (UK)" : "Anh - Mỹ (US)"})`}
+          className={cn(
+            "text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-white/[0.06] text-[#8e98b0] border border-white/[0.08] transition-all flex items-center gap-1",
+            !disabled && "hover:bg-white/[0.12] hover:text-white cursor-pointer",
+            disabled && "opacity-40 pointer-events-none cursor-not-allowed"
+          )}
         >
-          {accent === "en-GB" ? "🇬🇧 UK" : "🇺🇸 US"}
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
+          <span>{accent === "en-GB" ? "UK" : "US"}</span>
         </button>
       )}
     </div>

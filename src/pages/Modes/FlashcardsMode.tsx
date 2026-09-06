@@ -1,9 +1,16 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAppDispatch, useAppSelector } from "../../store/store";
-import { fetchStudySetById } from "../../store/slices/studySetSlice";
+import {
+  fetchStudySetById,
+  updateCardStarred,
+} from "../../store/slices/studySetSlice";
+import { addToast } from "../../store/slices/uiSlice";
 import { studyApi } from "../../api/studyApi";
+import { cardApi } from "../../api/cardApi";
 import { FlipCard } from "../../components/study/FlipCard";
+import { StudyHeaderBar } from "../../components/study/StudyHeaderBar";
 import { Button } from "../../components/common/Button";
 import { triggerConfetti } from "../../utils/confetti";
 import {
@@ -12,7 +19,6 @@ import {
   Shuffle,
   Star,
   RotateCcw,
-  ArrowLeft,
   Keyboard,
   Trophy,
 } from "lucide-react";
@@ -25,6 +31,7 @@ import { useTranslation } from "../../i18n";
 export const FlashcardsMode: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
   const { t } = useTranslation();
 
   const { currentSet, loading } = useAppSelector((state) => state.studySets);
@@ -37,16 +44,23 @@ export const FlashcardsMode: React.FC = () => {
   const [starredOnly, setStarredOnly] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const startTimeRef = useRef<number>(Date.now());
+  const loadedSetIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (id) {
+      loadedSetIdRef.current = null;
       dispatch(fetchStudySetById(id));
     }
   }, [dispatch, id]);
 
   useEffect(() => {
-    if (currentSet?.cards) {
+    if (currentSet?.cards && loadedSetIdRef.current !== currentSet.id) {
+      loadedSetIdRef.current = currentSet.id;
       setCards(currentSet.cards);
+      const starred = currentSet.cards
+        .filter((c) => Boolean(c.isStarred))
+        .map((c) => c.id);
+      setStarredIds(starred);
       setCurrentIndex(0);
       setIsFlipped(false);
       setIsCompleted(false);
@@ -58,12 +72,24 @@ export const FlashcardsMode: React.FC = () => {
     ? cards.filter((c) => starredIds.includes(c.id))
     : cards;
 
-  const currentCard = activeCards[currentIndex];
+  // Auto-clamp currentIndex when cards list shrinks (e.g. unstarring in starredOnly mode)
+  useEffect(() => {
+    if (activeCards.length > 0 && currentIndex >= activeCards.length) {
+      setCurrentIndex(Math.max(0, activeCards.length - 1));
+      setIsFlipped(false);
+    }
+  }, [activeCards.length, currentIndex]);
+
+  const safeIndex = Math.min(
+    currentIndex,
+    Math.max(0, activeCards.length - 1),
+  );
+  const currentCard = activeCards[safeIndex];
 
   const handleNext = useCallback(() => {
     if (isCompleted) return;
-    if (currentIndex < activeCards.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
+    if (safeIndex < activeCards.length - 1) {
+      setCurrentIndex((prev) => Math.min(prev + 1, activeCards.length - 1));
       setIsFlipped(false);
     } else {
       setIsCompleted(true);
@@ -87,7 +113,7 @@ export const FlashcardsMode: React.FC = () => {
       }
     }
   }, [
-    currentIndex,
+    safeIndex,
     activeCards.length,
     isCompleted,
     isAuthenticated,
@@ -97,25 +123,119 @@ export const FlashcardsMode: React.FC = () => {
 
   const handlePrev = useCallback(() => {
     if (isCompleted) return;
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
+    if (safeIndex > 0) {
+      setCurrentIndex((prev) => Math.max(0, prev - 1));
       setIsFlipped(false);
     }
-  }, [currentIndex, isCompleted]);
+  }, [safeIndex, isCompleted]);
 
   const handleFlip = useCallback(() => {
     if (isCompleted) return;
     setIsFlipped((prev) => !prev);
   }, [isCompleted]);
 
-  const handleToggleStar = useCallback(() => {
+  const handleToggleStar = useCallback(async () => {
     if (!currentCard || isCompleted) return;
+    const cardId = currentCard.id;
+
+    if (!isAuthenticated) {
+      dispatch(
+        addToast({
+          message: t(
+            "studySet.loginRequiredAction",
+            undefined,
+            "Please log in to star cards",
+          ),
+          type: "info",
+        }),
+      );
+      return;
+    }
+
+    const willBeStarred = !starredIds.includes(cardId);
+
+    // Optimistic local state update
     setStarredIds((prev) =>
-      prev.includes(currentCard.id)
-        ? prev.filter((id) => id !== currentCard.id)
-        : [...prev, currentCard.id],
+      willBeStarred
+        ? [...prev, cardId]
+        : prev.filter((item) => item !== cardId),
     );
-  }, [currentCard, isCompleted]);
+    setCards((prev) =>
+      prev.map((c) =>
+        c.id === cardId ? { ...c, isStarred: willBeStarred } : c,
+      ),
+    );
+
+    // Sync with Redux store
+    dispatch(updateCardStarred({ cardId, isStarred: willBeStarred }));
+
+    // Sync with TanStack Query cache for StudySetDetailPage
+    if (id) {
+      queryClient.setQueryData(["studySet", id], (old: any) => {
+        if (!old || !old.cards) return old;
+        return {
+          ...old,
+          cards: old.cards.map((c: any) =>
+            c.id === cardId ? { ...c, isStarred: willBeStarred } : c,
+          ),
+        };
+      });
+    }
+
+    try {
+      const res = await cardApi.toggleStar(cardId);
+      const actualStarred = res.data.isStarred;
+      if (actualStarred !== willBeStarred) {
+        setStarredIds((prev) =>
+          actualStarred
+            ? [...prev, cardId]
+            : prev.filter((item) => item !== cardId),
+        );
+        setCards((prev) =>
+          prev.map((c) =>
+            c.id === cardId ? { ...c, isStarred: actualStarred } : c,
+          ),
+        );
+        dispatch(updateCardStarred({ cardId, isStarred: actualStarred }));
+        if (id) {
+          queryClient.setQueryData(["studySet", id], (old: any) => {
+            if (!old || !old.cards) return old;
+            return {
+              ...old,
+              cards: old.cards.map((c: any) =>
+                c.id === cardId ? { ...c, isStarred: actualStarred } : c,
+              ),
+            };
+          });
+        }
+      }
+    } catch {
+      // Revert optimistic update on error
+      setStarredIds((prev) =>
+        !willBeStarred
+          ? [...prev, cardId]
+          : prev.filter((item) => item !== cardId),
+      );
+      setCards((prev) =>
+        prev.map((c) =>
+          c.id === cardId ? { ...c, isStarred: !willBeStarred } : c,
+        ),
+      );
+      dispatch(updateCardStarred({ cardId, isStarred: !willBeStarred }));
+      if (id) {
+        queryClient.invalidateQueries({ queryKey: ["studySet", id] });
+      }
+    }
+  }, [
+    currentCard,
+    isCompleted,
+    isAuthenticated,
+    starredIds,
+    dispatch,
+    t,
+    id,
+    queryClient,
+  ]);
 
   const handleShuffle = () => {
     setCards((prev) => [...prev].sort(() => Math.random() - 0.5));
@@ -182,75 +302,53 @@ export const FlashcardsMode: React.FC = () => {
         ? 100
         : Math.min(
             100,
-            Math.round(((currentIndex + 1) / activeCards.length) * 100),
+            Math.round(((safeIndex + 1) / activeCards.length) * 100),
           )
       : 0;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-12">
-      {/* Top Bar Navigation */}
-      <div className="flex items-center justify-between">
-        <Link
-          to={`/sets/${id}`}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[#8e98b0] hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{t("modes.backToSet", undefined, "Back to Set")}</span>
-        </Link>
+      {/* Unified Study Header Bar */}
+      <div className="space-y-3">
+        <StudyHeaderBar
+          current={activeCards.length > 0 ? (isCompleted ? activeCards.length : safeIndex + 1) : 0}
+          total={activeCards.length}
+          backUrl={`/sets/${id}`}
+          percent={progressPercent}
+        />
 
-        <div className="text-center">
-          <h1 className="text-base sm:text-lg font-bold text-white truncate max-w-xs sm:max-w-md">
-            {currentSet.title}
-          </h1>
-          <span className="text-xs text-[#8e98b0] font-mono">
-            {t("modes.flashcardsTitle", undefined, "Flashcards Mode")}
-          </span>
-        </div>
+        {/* Sub Header: Set Title & Quick Action Buttons */}
+        <div className="flex items-center justify-between gap-3 px-1">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-sm sm:text-base font-bold text-white truncate">
+              {currentSet.title}
+            </h1>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleShuffle}
-            title={t("modes.shuffleBtn", undefined, "Shuffle cards")}
-            className="p-2 rounded-xl bg-[#121420] hover:bg-[#181c30] border border-white/[0.08] text-[#8e98b0] hover:text-white transition-colors cursor-pointer"
-          >
-            <Shuffle className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => {
-              setStarredOnly(!starredOnly);
-              setCurrentIndex(0);
-              setIsFlipped(false);
-            }}
-            title={t("modes.starredOnlyBtn", undefined, "Filter starred only")}
-            className={`p-2 rounded-xl border transition-colors cursor-pointer ${
-              starredOnly
-                ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
-                : "bg-[#121420] text-[#8e98b0] hover:text-white border-white/[0.08]"
-            }`}
-          >
-            <Star className={`w-4 h-4 ${starredOnly ? "fill-current" : ""}`} />
-          </button>
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between text-xs font-mono font-bold text-[#8e98b0]">
-          <span>
-            {t("modes.cardProgress", {
-              current: isCompleted ? activeCards.length : currentIndex + 1,
-              total: activeCards.length,
-            })}
-          </span>
-          <span>
-            {t("modes.completedPercent", { percent: progressPercent })}
-          </span>
-        </div>
-        <div className="w-full bg-[#121420] h-1.5 rounded-full overflow-hidden border border-white/[0.08]">
-          <div
-            className="bg-[#4f5fd8] h-full rounded-full transition-all duration-300 ease-out"
-            style={{ width: `${progressPercent}%` }}
-          />
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              onClick={handleShuffle}
+              title={t("modes.shuffleBtn", undefined, "Shuffle cards")}
+              className="p-1.5 sm:p-2 rounded-xl bg-[#121420] hover:bg-[#181c30] border border-white/[0.08] text-[#8e98b0] hover:text-white transition-colors cursor-pointer"
+            >
+              <Shuffle className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => {
+                setStarredOnly(!starredOnly);
+                setCurrentIndex(0);
+                setIsFlipped(false);
+              }}
+              title={t("modes.starredOnlyBtn", undefined, "Filter starred only")}
+              className={`p-1.5 sm:p-2 rounded-xl border transition-colors cursor-pointer ${
+                starredOnly
+                  ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
+                  : "bg-[#121420] text-[#8e98b0] hover:text-white border-white/[0.08]"
+              }`}
+            >
+              <Star className={`w-4 h-4 ${starredOnly ? "fill-current" : ""}`} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -305,7 +403,7 @@ export const FlashcardsMode: React.FC = () => {
               variant="secondary"
               size="md"
               onClick={handlePrev}
-              disabled={currentIndex === 0}
+              disabled={safeIndex === 0}
               icon={<ChevronLeft className="w-4 h-4" />}
             >
               {t("modes.previous", undefined, "Previous")}
@@ -327,7 +425,7 @@ export const FlashcardsMode: React.FC = () => {
               onClick={handleNext}
               icon={<ChevronRight className="w-4 h-4" />}
             >
-              {currentIndex === activeCards.length - 1
+              {safeIndex === activeCards.length - 1
                 ? t("modes.finish", undefined, "Finish")
                 : t("modes.next", undefined, "Next")}
             </Button>

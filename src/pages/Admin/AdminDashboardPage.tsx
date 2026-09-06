@@ -36,9 +36,10 @@ import {
   ExternalLink,
   BookOpen,
   BrainCircuit,
-  PenTool,
+  Headphones,
   FileCheck2,
   Gamepad2,
+  PenLine,
   UserX,
   UserCheck,
   Crown,
@@ -1070,18 +1071,27 @@ const STUDY_MODES_CONFIG = [
     label: "Learn Mode (SRS)",
     subLabel: "Spaced repetition (SRS)",
     shortLabel: "Learn SRS",
-    color: "#10B981", // Emerald
-    badgeBg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    color: "#8B5CF6", // Purple
+    badgeBg: "bg-purple-500/10 text-purple-400 border-purple-500/20",
     Icon: BrainCircuit,
   },
   {
     key: "WRITE",
-    label: "Write & Spelling",
-    subLabel: "Active recall spelling",
-    shortLabel: "Write",
-    color: "#EC4899", // Pink
-    badgeBg: "bg-pink-500/10 text-pink-400 border-pink-500/20",
-    Icon: PenTool,
+    label: "Listening & Dictation",
+    subLabel: "Audio listening & spelling",
+    shortLabel: "Dictation",
+    color: "#10B981", // Emerald Green
+    badgeBg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    Icon: Headphones,
+  },
+  {
+    key: "CLOZE",
+    label: "Fill in the Blanks",
+    subLabel: "Contextual cloze sentences",
+    shortLabel: "Cloze",
+    color: "#06B6D4", // Cyan
+    badgeBg: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+    Icon: PenLine,
   },
   {
     key: "TEST",
@@ -1097,8 +1107,8 @@ const STUDY_MODES_CONFIG = [
     label: "Match Speed Game",
     subLabel: "Timed tile pairing",
     shortLabel: "Match",
-    color: "#06B6D4", // Cyan
-    badgeBg: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+    color: "#EC4899", // Pink
+    badgeBg: "bg-pink-500/10 text-pink-400 border-pink-500/20",
     Icon: Gamepad2,
   },
 ];

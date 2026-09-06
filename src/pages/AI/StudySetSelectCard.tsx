@@ -135,18 +135,18 @@ export const StudySetSelectCard: React.FC<StudySetSelectCardProps> = ({
       {/* Trigger Card */}
       <div
         onClick={() => setIsModalOpen(true)}
-        className="group relative p-3.5 sm:p-4 rounded-2xl bg-[#131722] hover:bg-[#181d2e] border border-[#262e48] hover:border-[#4f5fd8]/60 transition-all duration-200 cursor-pointer shadow-xs flex items-center justify-between gap-3.5"
+        className="group relative p-3 sm:p-4 rounded-2xl bg-[#131722] hover:bg-[#181d2e] border border-[#262e48] hover:border-[#4f5fd8]/60 transition-all duration-200 cursor-pointer shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
       >
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
           {/* Glowing Icon Box */}
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500/20 via-purple-500/15 to-pink-500/10 border border-indigo-500/30 flex items-center justify-center shrink-0 text-indigo-400 group-hover:scale-105 group-hover:border-indigo-500/50 transition-all duration-200 shadow-xs">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-indigo-500/20 via-purple-500/15 to-pink-500/10 border border-indigo-500/30 flex items-center justify-center shrink-0 text-indigo-400 group-hover:scale-105 group-hover:border-indigo-500/50 transition-all duration-200 shadow-xs">
             <BookOpen className="w-5 h-5 text-indigo-400 group-hover:text-indigo-300" />
           </div>
 
           {/* Set Info */}
           <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              <h4 className="text-sm font-black text-white truncate group-hover:text-indigo-200 transition-colors">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h4 className="text-sm font-black text-white group-hover:text-indigo-200 transition-colors">
                 {selectedSet?.title || "Chọn học phần nhận từ"}
               </h4>
               {selectedSet?.level && renderLevelBadge(selectedSet.level)}
@@ -180,14 +180,14 @@ export const StudySetSelectCard: React.FC<StudySetSelectCardProps> = ({
         </div>
 
         {/* Change Set Button */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center justify-end sm:justify-start pt-2 sm:pt-0 border-t border-[#262e48]/60 sm:border-t-0 shrink-0">
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               setIsModalOpen(true);
             }}
-            className="flex items-center gap-1.5 text-xs font-bold text-[#8e98b0] group-hover:text-white transition-colors bg-[#1a1f30] hover:bg-[#242b42] border border-[#262e48] group-hover:border-[#4f5fd8]/50 px-3 py-1.5 rounded-xl cursor-pointer shadow-xs"
+            className="w-full sm:w-auto flex items-center justify-center gap-1.5 text-xs font-bold text-[#8e98b0] group-hover:text-white transition-colors bg-[#1a1f30] hover:bg-[#242b42] border border-[#262e48] group-hover:border-[#4f5fd8]/50 px-3 py-1.5 rounded-xl cursor-pointer shadow-xs"
           >
             <Edit3 className="w-3.5 h-3.5 text-indigo-400" />
             <span>Đổi học phần</span>
@@ -285,32 +285,30 @@ export const StudySetSelectCard: React.FC<StudySetSelectCardProps> = ({
                       </div>
 
                       <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span
-                            className={cn(
-                              "text-sm font-bold truncate",
-                              isSelected
-                                ? "text-white"
-                                : "text-[#d9dde8] group-hover:text-white",
-                            )}
-                          >
-                            {s.title}
-                          </span>
+                        <h4
+                          className={cn(
+                            "text-sm font-bold leading-snug line-clamp-2 break-words",
+                            isSelected
+                              ? "text-white"
+                              : "text-[#d9dde8] group-hover:text-white",
+                          )}
+                        >
+                          {s.title}
+                        </h4>
+
+                        <div className="flex items-center gap-2 flex-wrap text-xs text-[#8e98b0] pt-0.5">
                           {s.level && renderLevelBadge(s.level)}
+                          <span className="font-semibold text-indigo-300 shrink-0">
+                            {s.cards?.length || 0} thẻ
+                          </span>
                           {s.privacy === PrivacyLevel.PRIVATE && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-400/90 font-medium bg-amber-500/10 px-1.5 py-0.5 rounded">
+                            <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-400/90 font-medium bg-amber-500/10 px-1.5 py-0.5 rounded shrink-0">
                               <Lock className="w-2.5 h-2.5" />
                               <span>Riêng tư</span>
                             </span>
                           )}
-                        </div>
-
-                        <div className="flex items-center gap-2 text-xs text-[#8e98b0]">
-                          <span className="font-semibold text-indigo-300">
-                            {s.cards?.length || 0} thẻ
-                          </span>
                           {s.description && (
-                            <span className="truncate max-w-sm text-[11px]">
+                            <span className="text-[11px] text-[#8e98b0] line-clamp-1 break-words">
                               • {s.description}
                             </span>
                           )}
@@ -319,11 +317,11 @@ export const StudySetSelectCard: React.FC<StudySetSelectCardProps> = ({
                     </div>
 
                     {/* Selected Badge */}
-                    <div className="shrink-0">
+                    <div className="shrink-0 self-center">
                       {isSelected ? (
-                        <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-lg inline-flex items-center gap-1">
+                        <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 sm:px-2.5 py-1 rounded-lg inline-flex items-center gap-1">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>Đang chọn</span>
+                          <span className="hidden sm:inline">Đang chọn</span>
                         </span>
                       ) : (
                         <button

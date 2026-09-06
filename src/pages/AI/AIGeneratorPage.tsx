@@ -418,12 +418,12 @@ export const AIGeneratorPage: React.FC = () => {
                   </span>
                 </label>
 
-                <div className="inline-flex p-1 bg-[#1a1f30] border border-[#262e48] rounded-xl text-xs shrink-0">
+                <div className="grid grid-cols-2 w-full sm:w-auto sm:inline-flex p-1 bg-[#1a1f30] border border-[#262e48] rounded-xl text-xs">
                   <button
                     type="button"
                     onClick={() => setSaveMode("NEW_SET")}
                     className={cn(
-                      "px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer",
+                      "px-2.5 py-2 sm:px-3 sm:py-1.5 rounded-lg font-bold transition-all cursor-pointer text-center flex items-center justify-center gap-1 leading-tight",
                       saveMode === "NEW_SET"
                         ? "bg-[#4f5fd8] text-white shadow-xs"
                         : "text-[#8e98b0] hover:text-white",
@@ -435,7 +435,7 @@ export const AIGeneratorPage: React.FC = () => {
                     type="button"
                     onClick={() => setSaveMode("EXISTING_SET")}
                     className={cn(
-                      "px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer",
+                      "px-2.5 py-2 sm:px-3 sm:py-1.5 rounded-lg font-bold transition-all cursor-pointer text-center flex items-center justify-center gap-1 leading-tight",
                       saveMode === "EXISTING_SET"
                         ? "bg-[#4f5fd8] text-white shadow-xs"
                         : "text-[#8e98b0] hover:text-white",

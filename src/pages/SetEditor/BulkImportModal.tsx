@@ -39,39 +39,118 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+// Safe native RFC-4180 compliant CSV parser (bypasses xlsx library to avoid CVE-2023-30533)
+function parseSafeCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentVal = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+
+    if (inQuotes) {
+      if (char === '"') {
+        if (nextChar === '"') {
+          currentVal += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        currentVal += char;
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true;
+      } else if (char === ",") {
+        currentRow.push(currentVal);
+        currentVal = "";
+      } else if (char === "\r") {
+        if (nextChar === "\n") {
+          i++;
+        }
+        currentRow.push(currentVal);
+        rows.push(currentRow);
+        currentRow = [];
+        currentVal = "";
+      } else if (char === "\n") {
+        currentRow.push(currentVal);
+        rows.push(currentRow);
+        currentRow = [];
+        currentVal = "";
+      } else {
+        currentVal += char;
+      }
+    }
+  }
+
+  if (currentVal || currentRow.length > 0) {
+    currentRow.push(currentVal);
+    rows.push(currentRow);
+  }
+
+  return rows;
+}
+
+// Sanitize string to prevent prototype pollution keys
+function sanitizeCell(val: unknown): string {
+  if (val === null || val === undefined) return "";
+  const str = String(val).trim();
+  if (str === "__proto__" || str === "constructor" || str === "prototype") {
+    return "";
+  }
+  return str;
+}
+
   const handleFileProcess = async (selectedFile: File) => {
     setFile(selectedFile);
     setFileError(null);
     setFileCards([]);
 
     try {
-      const buffer = await selectedFile.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array" });
-      const firstSheetName = workbook.SheetNames[0];
-      if (!firstSheetName) {
-        setFileError(
-          t(
-            "setEditor.bulkNoSheets",
-            undefined,
-            "No sheets found in the uploaded workbook.",
-          ),
-        );
-        return;
-      }
+      const isCsv = selectedFile.name.toLowerCase().endsWith(".csv");
+      let rawRows: Array<Array<string | number | undefined>> = [];
 
-      const worksheet = workbook.Sheets[firstSheetName];
-      if (!worksheet) {
-        setFileError(
-          t("setEditor.bulkEmptySheet", undefined, "Sheet is empty."),
-        );
-        return;
-      }
+      if (isCsv) {
+        // Native safe CSV parsing without invoking xlsx
+        const text = await selectedFile.text();
+        rawRows = parseSafeCsv(text);
+      } else {
+        // Excel parsing with array buffer & prototype pollution sanitization
+        const buffer = await selectedFile.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array" });
+        const firstSheetName = workbook.SheetNames[0];
+        if (!firstSheetName) {
+          setFileError(
+            t(
+              "setEditor.bulkNoSheets",
+              undefined,
+              "No sheets found in the uploaded workbook.",
+            ),
+          );
+          return;
+        }
 
-      const rawRows: Array<Array<string | number | undefined>> =
-        XLSX.utils.sheet_to_json(worksheet, {
-          header: 1,
-          defval: "",
-        });
+        const worksheet = workbook.Sheets[firstSheetName];
+        if (!worksheet) {
+          setFileError(
+            t("setEditor.bulkEmptySheet", undefined, "Sheet is empty."),
+          );
+          return;
+        }
+
+        const jsonRows: Array<Array<string | number | undefined>> =
+          XLSX.utils.sheet_to_json(worksheet, {
+            header: 1,
+            defval: "",
+          });
+
+        rawRows = (jsonRows || []).map((row) =>
+          Array.isArray(row) ? row.map((cell) => sanitizeCell(cell)) : [],
+        );
+      }
 
       if (!rawRows || rawRows.length === 0) {
         setFileError(
@@ -86,11 +165,11 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
         const row = rawRows[i];
         if (!row || row.length === 0) continue;
 
-        const col0 = String(row[0] || "").trim();
-        const col1 = String(row[1] || "").trim();
-        const col2 = row[2] !== undefined ? String(row[2]).trim() : undefined;
-        const col3 = row[3] !== undefined ? String(row[3]).trim() : undefined;
-        const col4 = row[4] !== undefined ? String(row[4]).trim() : undefined;
+        const col0 = sanitizeCell(row[0]);
+        const col1 = sanitizeCell(row[1]);
+        const col2 = row[2] !== undefined ? sanitizeCell(row[2]) : undefined;
+        const col3 = row[3] !== undefined ? sanitizeCell(row[3]) : undefined;
+        const col4 = row[4] !== undefined ? sanitizeCell(row[4]) : undefined;
 
         // Skip header row if it contains column labels like "term", "từ", "definition", "nghĩa"
         if (

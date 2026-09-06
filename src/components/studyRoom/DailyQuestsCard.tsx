@@ -15,6 +15,12 @@ import {
   Compass,
   Award,
   Flame,
+  PenLine,
+  Headphones,
+  Gamepad2,
+  Star,
+  Layers,
+  Bot,
 } from "lucide-react";
 import { DailyQuest, QuestType } from "../../types/studyRoom.types";
 import { useTranslation } from "../../i18n";
@@ -78,6 +84,8 @@ export const DailyQuestsCard: React.FC<DailyQuestsCardProps> = ({
         return <Flame className="w-4 h-4 text-orange-400" />;
       case "PERFECT_TEST_EXAM":
         return <Award className="w-4 h-4 text-yellow-400" />;
+      case "HIGH_SCORE_TEST":
+        return <Target className="w-4 h-4 text-emerald-400" />;
       case "FLAWLESS_SM2_LEARN":
         return <Sparkles className="w-4 h-4 text-emerald-400" />;
       case "CREATE_STUDY_SET":
@@ -89,6 +97,18 @@ export const DailyQuestsCard: React.FC<DailyQuestsCardProps> = ({
         return <Compass className="w-4 h-4 text-cyan-400" />;
       case "TAKE_PRACTICE_QUIZ":
         return <Target className="w-4 h-4 text-purple-400" />;
+      case "STUDY_CLOZE_MODE":
+        return <PenLine className="w-4 h-4 text-teal-400" />;
+      case "STUDY_WRITE_MODE":
+        return <Headphones className="w-4 h-4 text-sky-400" />;
+      case "PLAY_MATCH_GAME":
+        return <Gamepad2 className="w-4 h-4 text-violet-400" />;
+      case "REVIEW_STARRED_CARDS":
+        return <Star className="w-4 h-4 text-amber-400 fill-amber-400/20" />;
+      case "STUDY_FLASHCARDS":
+        return <Layers className="w-4 h-4 text-blue-400" />;
+      case "AI_GENERATE_CARDS":
+        return <Bot className="w-4 h-4 text-fuchsia-400" />;
       default:
         return <Sparkles className="w-4 h-4 text-cyan-400" />;
     }

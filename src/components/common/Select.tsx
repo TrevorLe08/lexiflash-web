@@ -16,6 +16,7 @@ interface SelectProps {
   placeholder?: string;
   className?: string;
   icon?: React.ReactNode;
+  placement?: "top" | "bottom" | "auto" | "mobile-top";
 }
 
 export const Select: React.FC<SelectProps> = ({
@@ -25,8 +26,10 @@ export const Select: React.FC<SelectProps> = ({
   placeholder = "Select...",
   className,
   icon,
+  placement = "auto",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpwards, setOpenUpwards] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
@@ -43,6 +46,30 @@ export const Select: React.FC<SelectProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      if (placement === "top") {
+        setOpenUpwards(true);
+        return;
+      }
+      if (placement === "bottom") {
+        setOpenUpwards(false);
+        return;
+      }
+      const rect = containerRef.current.getBoundingClientRect();
+      const isMobile = window.innerWidth < 640;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+
+      // On mobile: default to opening upwards unless near the top (< 160px)
+      if (isMobile) {
+        setOpenUpwards(spaceAbove >= 160 || spaceBelow < 220);
+      } else {
+        setOpenUpwards(spaceBelow < 220 && spaceAbove >= 220);
+      }
+    }
+  }, [isOpen, placement]);
 
   return (
     <div
@@ -72,7 +99,14 @@ export const Select: React.FC<SelectProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 sm:left-0 sm:right-auto mt-2 w-52 bg-[#1a1f30] border border-[#262e48] rounded-2xl shadow-2xl py-1.5 z-50 animate-scale-up origin-top-left">
+        <div
+          className={cn(
+            "absolute right-0 sm:left-0 sm:right-auto w-52 bg-[#1a1f30] border border-[#262e48] rounded-2xl shadow-2xl py-1.5 z-50 animate-scale-up",
+            openUpwards
+              ? "bottom-full mb-2 origin-bottom-left"
+              : "top-full mt-2 origin-top-left",
+          )}
+        >
           {options.map((opt) => {
             const isSelected = opt.value === value;
             return (

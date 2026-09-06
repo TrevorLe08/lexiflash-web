@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { StudySet, PrivacyLevel, StudyLevel } from "../../types";
 import { studySetApi } from "../../api/studySetApi";
 import { addToast } from "./uiSlice";
@@ -125,6 +125,19 @@ export const studySetSlice = createSlice({
     clearCurrentSet: (state) => {
       state.currentSet = null;
     },
+    updateCardStarred: (
+      state,
+      action: PayloadAction<{ cardId: string; isStarred: boolean }>,
+    ) => {
+      if (state.currentSet?.cards) {
+        const card = state.currentSet.cards.find(
+          (c) => c.id === action.payload.cardId,
+        );
+        if (card) {
+          card.isStarred = action.payload.isStarred;
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -169,5 +182,5 @@ export const studySetSlice = createSlice({
   },
 });
 
-export const { clearCurrentSet } = studySetSlice.actions;
+export const { clearCurrentSet, updateCardStarred } = studySetSlice.actions;
 export default studySetSlice.reducer;

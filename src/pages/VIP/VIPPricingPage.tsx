@@ -147,20 +147,25 @@ export const VIPPricingPage: React.FC = () => {
       </div>
 
       {/* Pricing Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch pt-4">
         {/* 1. FREE PLAN */}
         <div
-          className={`bg-[#1a1d36] border ${currentActivePlan === "FREE" ? "border-indigo-500/50" : "border-[#2e3856]"} rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xl relative transition-all duration-300 hover:border-[#4257B2]/60`}
+          className={`bg-[#161a29] border ${currentActivePlan === "FREE" ? "border-indigo-500/50 ring-2 ring-indigo-500/20" : "border-[#262e48]"} rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xl relative transition-all duration-300 hover:border-[#4257B2]/60`}
         >
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#939bb4] block mb-1">
                 {t("vip.freePlanBadge", undefined, "Gói Cơ Bản")}
               </span>
-              <h3 className="text-2xl font-black text-white">
-                {t("vip.freePlanTitle", undefined, "Miễn Phí")}
-              </h3>
-              <p className="text-xs text-[#939bb4] pt-1">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-2xl font-black text-white whitespace-nowrap">
+                  {t("vip.freePlanTitle", undefined, "Miễn Phí")}
+                </h3>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#262e48] text-[#939bb4] font-bold tracking-wider shrink-0">
+                  STARTER
+                </span>
+              </div>
+              <p className="text-xs text-[#939bb4] min-h-[36px] pt-1 leading-relaxed">
                 {t(
                   "vip.freePlanDesc",
                   undefined,
@@ -169,55 +174,44 @@ export const VIPPricingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-black text-white">0đ</span>
-              <span className="text-xs text-[#939bb4]">
-                {t("vip.freePerpetual", undefined, "/ vĩnh viễn")}
-              </span>
+            <div>
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="text-4xl font-black text-white">0đ</span>
+                <span className="text-xs text-[#939bb4] whitespace-nowrap">
+                  {t("vip.freePerpetual", undefined, "/ vĩnh viễn")}
+                </span>
+              </div>
+              <p className="text-[11px] text-[#586380] font-semibold pt-1 min-h-[22px]">
+                Miễn phí trọn đời cho mọi tài khoản
+              </p>
             </div>
 
-            <div className="space-y-3.5 pt-4 border-t border-[#2e3856]/60 text-xs">
-              <div className="flex items-center gap-3 text-[#d9dde8]">
+            <div className="space-y-3 pt-4 border-t border-[#262e48]/80 text-xs">
+              <div className="flex items-center gap-2.5 text-[#d9dde8]">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>
-                  {t("vip.featSrs", undefined, "Học Spaced Repetition (SRS)")}:{" "}
-                  <strong>
-                    {t("vip.featSrsVal", undefined, "Không giới hạn")}
-                  </strong>
+                  Học SRS: <strong>Không giới hạn</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[#d9dde8]">
+              <div className="flex items-center gap-2.5 text-[#d9dde8]">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>
-                  {t("vip.featCards", undefined, "Số lượng từ vựng tối đa")}:{" "}
-                  <strong>
-                    {t("vip.featCardsFree", undefined, "Tối đa 300 từ")}
-                  </strong>
+                  Từ vựng: <strong>Tối đa 300 từ</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[#d9dde8]">
+              <div className="flex items-center gap-2.5 text-[#d9dde8]">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>
-                  {t("vip.featMistakes", undefined, "Mistake Bank")}:{" "}
-                  <strong>
-                    {t("vip.featMistakesFree", undefined, "Tối đa 20 lỗi")}
-                  </strong>
+                  Mistake Bank: <strong>Tối đa 20 lỗi sai</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[#d9dde8]">
+              <div className="flex items-center gap-2.5 text-[#d9dde8]">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>
-                  {t("vip.featGroups", undefined, "Study Group")}:{" "}
-                  <strong>
-                    {t(
-                      "vip.featGroupsFree",
-                      undefined,
-                      "Tổng 5 nhóm (tạo max 2 nhóm)",
-                    )}
-                  </strong>
+                  Study Group: <strong>Tối đa 5 nhóm</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[#d9dde8]">
+              <div className="flex items-center gap-2.5 text-[#d9dde8]">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>
                   {t(
@@ -227,7 +221,7 @@ export const VIPPricingPage: React.FC = () => {
                   )}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[#6c7289]">
+              <div className="flex items-center gap-2.5 text-[#6c7289]">
                 <X className="w-4 h-4 text-rose-400 shrink-0" />
                 <span className="line-through">
                   {t(
@@ -237,7 +231,7 @@ export const VIPPricingPage: React.FC = () => {
                   )}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[#6c7289]">
+              <div className="flex items-center gap-2.5 text-[#6c7289]">
                 <X className="w-4 h-4 text-rose-400 shrink-0" />
                 <span className="line-through">
                   {t(
@@ -247,7 +241,7 @@ export const VIPPricingPage: React.FC = () => {
                   )}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[#6c7289]">
+              <div className="flex items-center gap-2.5 text-[#6c7289]">
                 <X className="w-4 h-4 text-rose-400 shrink-0" />
                 <span className="line-through">
                   {t("vip.featBadge", undefined, "Huy hiệu VIP Vương miện")}
@@ -276,110 +270,95 @@ export const VIPPricingPage: React.FC = () => {
 
         {/* 2. VIP 1 MONTH */}
         <div
-          className={`bg-[#1a1d36] border ${currentActivePlan === "1_MONTH" ? "border-amber-400 ring-2 ring-amber-400/20" : "border-amber-500/40"} rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xl relative transition-all duration-300 hover:border-amber-400 hover:shadow-amber-500/10 hover:-translate-y-1`}
+          className={`bg-[#171b2d] border ${currentActivePlan === "1_MONTH" ? "border-amber-400 ring-2 ring-amber-400/20" : "border-amber-500/40"} rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xl relative transition-all duration-300 hover:border-amber-400 hover:shadow-amber-500/10 hover:-translate-y-1`}
         >
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block mb-1">
-                  {t("vip.vipMonthBadge", undefined, "Gói Linh Hoạt")}
-                </span>
-                <h3 className="text-2xl font-black text-white flex items-center gap-2">
-                  <span>
-                    {t("vip.vipMonthTitle", undefined, "VIP 1 Tháng")}
-                  </span>
-                  <Crown className="w-5 h-5 text-amber-400" />
+          <div className="space-y-5">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block mb-1">
+                {t("vip.vipMonthBadge", undefined, "Gói Linh Hoạt")}
+              </span>
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-2xl font-black text-white whitespace-nowrap">
+                  {t("vip.vipMonthTitle", undefined, "VIP 1 Tháng")}
                 </h3>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-black tracking-wider">
+                    GOLD
+                  </span>
+                  <Crown className="w-4 h-4 text-amber-400" />
+                </div>
               </div>
+              <p className="text-xs text-[#939bb4] min-h-[36px] pt-1 leading-relaxed">
+                {t(
+                  "vip.vipMonthDesc",
+                  undefined,
+                  "Thử nghiệm toàn bộ sức mạnh AI & tạo thẻ không giới hạn trong 30 ngày.",
+                )}
+              </p>
             </div>
 
-            <p className="text-xs text-[#939bb4]">
-              {t(
-                "vip.vipMonthDesc",
-                undefined,
-                "Thử nghiệm toàn bộ sức mạnh AI & tạo thẻ không giới hạn trong 30 ngày.",
-              )}
-            </p>
-
-            <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-black text-amber-300">
-                {t("vip.vipMonthPrice", undefined, "49.000đ")}
-              </span>
-              <span className="text-xs text-[#939bb4]">
-                {t("vip.vipMonthDuration", undefined, "/ 30 ngày")}
-              </span>
+            <div>
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="text-4xl font-black text-amber-300">
+                  {t("vip.vipMonthPrice", undefined, "49.000đ")}
+                </span>
+                <span className="text-xs text-[#939bb4] whitespace-nowrap">
+                  {t("vip.vipMonthDuration", undefined, "/ 30 ngày")}
+                </span>
+              </div>
+              <p className="text-[11px] text-amber-300/80 font-semibold pt-1 min-h-[22px]">
+                Linh hoạt gia hạn theo từng tháng
+              </p>
             </div>
 
-            <div className="space-y-3.5 pt-4 border-t border-[#2e3856]/60 text-xs">
-              <div className="flex items-center gap-3 text-white font-medium">
+            <div className="space-y-3 pt-4 border-t border-[#262e48]/80 text-xs">
+              <div className="flex items-center gap-2.5 text-white font-medium">
                 <InfinityIcon className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>
-                  {t("vip.featSrs", undefined, "Học SRS")}:{" "}
-                  <strong>
-                    {t("vip.featCardsVip", undefined, "KHÔNG GIỚI HẠN")}
-                  </strong>
+                  Học SRS: <strong>KHÔNG GIỚI HẠN</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-medium">
+              <div className="flex items-center gap-2.5 text-white font-medium">
                 <InfinityIcon className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>
-                  {t("vip.featCards", undefined, "Từ vựng")}:{" "}
-                  <strong>
-                    {t("vip.featCardsVip", undefined, "KHÔNG GIỚI HẠN")}
-                  </strong>
+                  Từ vựng: <strong>KHÔNG GIỚI HẠN</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-medium">
+              <div className="flex items-center gap-2.5 text-white font-medium">
                 <InfinityIcon className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>
-                  {t("vip.featMistakes", undefined, "Mistake Bank")}:{" "}
-                  <strong>
-                    {t("vip.featMistakesVip", undefined, "KHÔNG GIỚI HẠN")}
-                  </strong>
+                  Mistake Bank: <strong>KHÔNG GIỚI HẠN</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-medium">
+              <div className="flex items-center gap-2.5 text-white font-medium">
                 <Bot className="w-4 h-4 text-indigo-400 shrink-0" />
                 <span>
-                  {t("vip.featAiGen", undefined, "AI Generator")}:{" "}
+                  AI Generator:{" "}
                   <strong className="text-amber-300">
-                    {t("vip.featAiGenVipMonth", undefined, "20 lần / ngày")}
+                    20 lượt / ngày
                   </strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-medium">
+              <div className="flex items-center gap-2.5 text-white font-medium">
                 <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>
-                  {t("vip.featAiExplain", undefined, "AI Explainer")}:{" "}
-                  <strong>
-                    {t("vip.featAiExplainVip", undefined, "KHÔNG GIỚI HẠN")}
-                  </strong>
+                  AI Explainer: <strong>KHÔNG GIỚI HẠN</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-medium">
+              <div className="flex items-center gap-2.5 text-white font-medium">
                 <InfinityIcon className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>
-                  {t("vip.featGroups", undefined, "Study Group")}:{" "}
-                  <strong>
-                    {t(
-                      "vip.featGroupsVip",
-                      undefined,
-                      "KHÔNG GIỚI HẠN + Chia sẻ riêng tư",
-                    )}
-                  </strong>
+                  Study Group:{" "}
+                  <strong>KHÔNG GIỚI HẠN + Chia sẻ riêng tư</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-medium">
+              <div className="flex items-center gap-2.5 text-white font-medium">
                 <Crown className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>
-                  {t(
-                    "vip.featBadgeMonth",
-                    undefined,
-                    "Huy hiệu VIP Gold Member trên Profile & Nhóm 👑",
-                  )}
+                  Huy hiệu VIP Gold Member trên Profile & Nhóm 👑
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[#d9dde8]">
+              <div className="flex items-center gap-2.5 text-[#d9dde8]">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>
                   {t(
@@ -435,28 +414,37 @@ export const VIPPricingPage: React.FC = () => {
               : currentActivePlan === "ADMIN"
                 ? "border-purple-400 ring-2 ring-purple-400/40"
                 : "border-cyan-400/80 hover:border-cyan-300 shadow-cyan-500/20"
-          } rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-2xl relative transition-all duration-300 hover:-translate-y-1.5`}
+          } rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-2xl shadow-cyan-950/40 relative transition-all duration-300 hover:-translate-y-1.5`}
         >
-          <div className="space-y-6">
+          {/* Floating Popular Badge */}
+          <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 text-black text-[11px] font-black uppercase tracking-wider shadow-lg shadow-cyan-500/30 z-10">
+            <Sparkles className="w-3.5 h-3.5 fill-black" />
+            <span>
+              {t(
+                "vip.vipYearBestValue",
+                undefined,
+                "Tiết Kiệm 32% • Phổ Biến Nhất",
+              )}
+            </span>
+          </div>
+
+          <div className="space-y-5">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-400 text-black text-[11px] font-black uppercase tracking-wider shadow-md shadow-cyan-500/20 mb-2.5">
-                <Sparkles className="w-3.5 h-3.5 fill-black" />
-                <span>
-                  {t(
-                    "vip.vipYearBestValue",
-                    undefined,
-                    "Tiết Kiệm 32% • Phổ Biến Nhất",
-                  )}
-                </span>
+              <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 block mb-1">
+                Gói Tiết Kiệm Nhất
+              </span>
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-2xl font-black text-white whitespace-nowrap">
+                  {t("vip.vipYearTitle", undefined, "VIP 1 Năm")}
+                </h3>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-black tracking-wider">
+                    DIAMOND
+                  </span>
+                  <Sparkles className="w-4 h-4 text-cyan-300 fill-cyan-300" />
+                </div>
               </div>
-              <h3 className="text-2xl font-black text-white flex items-center gap-2">
-                <span>{t("vip.vipYearTitle", undefined, "VIP 1 Năm")}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-black">
-                  DIAMOND
-                </span>
-                <Sparkles className="w-5 h-5 text-cyan-300 fill-cyan-300" />
-              </h3>
-              <p className="text-xs text-[#d9dde8] pt-1">
+              <p className="text-xs text-[#d9dde8] min-h-[36px] pt-1 leading-relaxed">
                 {t(
                   "vip.vipYearDesc",
                   undefined,
@@ -466,15 +454,15 @@ export const VIPPricingPage: React.FC = () => {
             </div>
 
             <div>
-              <div className="flex items-baseline gap-1">
+              <div className="flex items-baseline gap-1.5 flex-wrap">
                 <span className="text-4xl font-black text-cyan-300">
                   {t("vip.vipYearPrice", undefined, "399.000đ")}
                 </span>
-                <span className="text-xs text-[#939bb4]">
+                <span className="text-xs text-[#939bb4] whitespace-nowrap">
                   {t("vip.vipYearDuration", undefined, "/ 365 ngày")}
                 </span>
               </div>
-              <p className="text-[11px] text-cyan-300/80 font-semibold pt-1">
+              <p className="text-[11px] text-cyan-300 font-semibold pt-1 min-h-[22px]">
                 {t(
                   "vip.vipYearSubprice",
                   undefined,
@@ -483,79 +471,63 @@ export const VIPPricingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="space-y-3.5 pt-4 border-t border-cyan-400/30 text-xs">
-              <div className="flex items-center gap-3 text-white font-bold">
+            <div className="space-y-3 pt-4 border-t border-cyan-400/30 text-xs">
+              <div className="flex items-center gap-2.5 text-white font-bold">
                 <InfinityIcon className="w-4 h-4 text-cyan-300 shrink-0" />
                 <span>
-                  {t("vip.featSrs", undefined, "Học SRS")}:{" "}
-                  <strong className="text-cyan-300">
-                    {t("vip.featCardsVip", undefined, "KHÔNG GIỚI HẠN")}
-                  </strong>
+                  Học SRS:{" "}
+                  <strong className="text-cyan-300">KHÔNG GIỚI HẠN</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-bold">
+              <div className="flex items-center gap-2.5 text-white font-bold">
                 <InfinityIcon className="w-4 h-4 text-cyan-300 shrink-0" />
                 <span>
-                  {t("vip.featCards", undefined, "Từ vựng")}:{" "}
-                  <strong className="text-cyan-300">
-                    {t("vip.featCardsVip", undefined, "KHÔNG GIỚI HẠN")}
-                  </strong>
+                  Từ vựng:{" "}
+                  <strong className="text-cyan-300">KHÔNG GIỚI HẠN</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-bold">
+              <div className="flex items-center gap-2.5 text-white font-bold">
                 <InfinityIcon className="w-4 h-4 text-cyan-300 shrink-0" />
                 <span>
-                  {t("vip.featMistakes", undefined, "Mistake Bank")}:{" "}
-                  <strong className="text-cyan-300">
-                    {t("vip.featMistakesVip", undefined, "KHÔNG GIỚI HẠN")}
-                  </strong>
+                  Mistake Bank:{" "}
+                  <strong className="text-cyan-300">KHÔNG GIỚI HẠN</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-bold">
+              <div className="flex items-center gap-2.5 text-white font-bold">
                 <Bot className="w-4 h-4 text-cyan-300 shrink-0" />
                 <span>
-                  {t("vip.featAiGen", undefined, "AI Generator")}:{" "}
+                  AI Generator:{" "}
                   <strong className="text-cyan-300">
-                    {t("vip.featAiGenVipYear", undefined, "40 lần / ngày")}
-                  </strong>
-                  <span className="text-[10px] text-cyan-300 font-normal ml-1">
-                    (Gấp đôi quota)
+                    40 lượt / ngày
+                  </strong>{" "}
+                  <span className="text-[10px] text-cyan-300 font-normal">
+                    (x2 quota)
                   </span>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-bold">
+              <div className="flex items-center gap-2.5 text-white font-bold">
                 <Sparkles className="w-4 h-4 text-cyan-300 shrink-0" />
                 <span>
-                  {t("vip.featAiExplain", undefined, "AI Explainer")}:{" "}
-                  <strong className="text-cyan-300">
-                    {t("vip.featAiExplainVip", undefined, "KHÔNG GIỚI HẠN")}
-                  </strong>
+                  AI Explainer:{" "}
+                  <strong className="text-cyan-300">KHÔNG GIỚI HẠN</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-bold">
+              <div className="flex items-center gap-2.5 text-white font-bold">
                 <InfinityIcon className="w-4 h-4 text-cyan-300 shrink-0" />
                 <span>
-                  {t("vip.featGroups", undefined, "Study Group")}:{" "}
+                  Study Group:{" "}
                   <strong className="text-cyan-300">
-                    {t(
-                      "vip.featGroupsVip",
-                      undefined,
-                      "KHÔNG GIỚI HẠN + Chia sẻ riêng tư",
-                    )}
+                    KHÔNG GIỚI HẠN + Riêng tư
                   </strong>
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-bold">
+              <div className="flex items-center gap-2.5 text-white font-bold">
                 <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>
-                  {t(
-                    "vip.featBadgeYear",
-                    undefined,
-                    "Huy hiệu VIP Diamond Elite đặc biệt 💎",
-                  )}
+                  Huy hiệu VIP Diamond Elite đặc biệt 💎
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-bold">
+              <div className="flex items-center gap-2.5 text-white font-bold">
                 <Zap className="w-4 h-4 text-cyan-300 shrink-0" />
                 <span>
                   {t(
@@ -565,7 +537,7 @@ export const VIPPricingPage: React.FC = () => {
                   )}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-white font-medium">
+              <div className="flex items-center gap-2.5 text-white font-medium">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>
                   {t(
@@ -853,14 +825,14 @@ export const VIPPricingPage: React.FC = () => {
           "Liên hệ Admin để kích hoạt gói VIP",
         )}
       >
-        <div className="space-y-6 pt-1">
+        <div className="space-y-3.5 sm:space-y-5 pt-1">
           {/* Plan Summary Banner */}
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold uppercase text-amber-400">
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3">
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase text-amber-400">
                 {t("vip.modalSubtitle", undefined, "Gói Nâng Cấp Đã Chọn")}
               </span>
-              <h4 className="text-base font-black text-white">
+              <h4 className="text-sm sm:text-base font-black text-white">
                 {selectedPlan === "1_YEAR"
                   ? `🌟 ${t("vip.vipYearTitle", undefined, "Gói VIP 1 Năm")} (365 ${t("sidebar.days", undefined, "Ngày")})`
                   : `👑 ${t("vip.vipMonthTitle", undefined, "Gói VIP 1 Tháng")} (30 ${t("sidebar.days", undefined, "Ngày")})`}
@@ -870,14 +842,14 @@ export const VIPPricingPage: React.FC = () => {
                 {selectedPlan === "1_YEAR" ? "399.000 VNĐ" : "49.000 VNĐ"}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-              <Crown className="w-6 h-6" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+              <Crown className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
           </div>
 
           {/* Account Details */}
           {user && (
-            <div className="bg-[#0a092d] border border-[#2e3856] rounded-2xl p-4 space-y-2 text-xs">
+            <div className="bg-[#0a092d] border border-[#2e3856] rounded-xl sm:rounded-2xl p-3 sm:p-4 space-y-1.5 text-xs">
               <div className="flex justify-between text-[#939bb4]">
                 <span>
                   {t("vip.modalYourAccount", undefined, "Tài khoản của bạn:")}
@@ -896,11 +868,11 @@ export const VIPPricingPage: React.FC = () => {
           )}
 
           {/* Step Instructions */}
-          <div className="space-y-3">
-            <h5 className="text-xs font-bold uppercase tracking-wider text-[#939bb4]">
+          <div className="space-y-2">
+            <h5 className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#939bb4]">
               {t("vip.modalStepsTitle", undefined, "Các bước kích hoạt nhanh:")}
             </h5>
-            <ol className="space-y-2.5 text-xs text-[#d9dde8] list-decimal list-inside leading-relaxed">
+            <ol className="space-y-1.5 sm:space-y-2 text-xs text-[#d9dde8] list-decimal list-inside leading-relaxed">
               <li>
                 {t(
                   "vip.modalStep1",
@@ -926,15 +898,15 @@ export const VIPPricingPage: React.FC = () => {
           </div>
 
           {/* Bank / Contact Info Box */}
-          <div className="bg-[#0a092d] border border-[#2e3856] rounded-2xl p-4 space-y-3">
-            <div className="flex items-center justify-between text-xs pb-2 border-b border-[#2e3856]/60">
+          <div className="bg-[#0a092d] border border-[#2e3856] rounded-xl sm:rounded-2xl p-3 sm:p-4 space-y-2.5">
+            <div className="flex items-center justify-between text-xs pb-1.5 border-b border-[#2e3856]/60">
               <span className="text-[#939bb4]">
                 {t("vip.modalBankName", undefined, "Ngân hàng:")}
               </span>
               <strong className="text-white">Vietinbank</strong>
             </div>
 
-            <div className="flex items-center justify-between text-xs pb-2 border-b border-[#2e3856]/60">
+            <div className="flex items-center justify-between text-xs pb-1.5 border-b border-[#2e3856]/60">
               <span className="text-[#939bb4]">
                 {t("vip.modalAccountNo", undefined, "Số tài khoản:")}
               </span>
@@ -955,7 +927,7 @@ export const VIPPricingPage: React.FC = () => {
               </span>
             </div>
 
-            <div className="flex items-center justify-between text-xs pb-2 border-b border-[#2e3856]/60">
+            <div className="flex items-center justify-between text-xs pb-1.5 border-b border-[#2e3856]/60">
               <span className="text-[#939bb4]">
                 {t("vip.modalAccountName", undefined, "Chủ tài khoản:")}
               </span>
@@ -985,7 +957,7 @@ export const VIPPricingPage: React.FC = () => {
           </div>
 
           {/* Direct Support Channels */}
-          <div className="p-3 bg-[#1a1d36] rounded-xl border border-[#2e3856] text-xs text-[#939bb4] space-y-1">
+          <div className="p-2.5 sm:p-3 bg-[#1a1d36] rounded-xl border border-[#2e3856] text-xs text-[#939bb4] space-y-1">
             <p className="font-semibold text-white">
               {t(
                 "vip.modalHotline",
@@ -1005,11 +977,12 @@ export const VIPPricingPage: React.FC = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
             <Button
               variant="secondary"
               size="md"
               onClick={() => setContactModalOpen(false)}
+              className="w-full sm:w-auto"
             >
               {t("common.close", undefined, "Đóng")}
             </Button>
@@ -1024,6 +997,7 @@ export const VIPPricingPage: React.FC = () => {
                 setContactModalOpen(false);
               }}
               icon={<Copy className="w-4 h-4" />}
+              className="w-full sm:w-auto"
             >
               {t("vip.modalCopyBtn", undefined, "Sao chép cú pháp & hoàn tất")}
             </Button>

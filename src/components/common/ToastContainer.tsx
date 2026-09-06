@@ -30,12 +30,12 @@ export const ToastContainer: React.FC = () => {
         return (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-xl border backdrop-blur-md transition-all duration-300 transform translate-y-0 ${
+            className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-xl border transition-all duration-300 transform translate-y-0 ${
               isSuccess
-                ? "bg-emerald-950/90 border-emerald-500/40 text-emerald-100"
+                ? "bg-[#0b291d] border-emerald-500/50 text-emerald-100"
                 : isError
-                  ? "bg-red-950/90 border-red-500/40 text-red-100"
-                  : "bg-[#1a1d36]/95 border-[#3c476c] text-[#f6f7fb]"
+                  ? "bg-[#2f1118] border-red-500/50 text-red-100"
+                  : "bg-[#1a1d36] border-[#3c476c] text-[#f6f7fb]"
             }`}
           >
             <div className="shrink-0 mt-0.5">

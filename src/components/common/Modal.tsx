@@ -44,33 +44,35 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity animate-fade-in"
+        className="fixed inset-0 bg-black/80 transition-opacity animate-fade-in"
         onClick={onClose}
       />
 
       {/* Modal Dialog */}
       <div
         className={cn(
-          "relative w-full bg-[#1a1d36] border border-[#2e3856] rounded-2xl shadow-2xl overflow-hidden z-10 animate-scale-up",
+          "relative w-full max-h-[88dvh] sm:max-h-[90vh] flex flex-col bg-[#1a1d36] border border-[#2e3856] rounded-2xl shadow-2xl overflow-hidden z-10 animate-scale-up",
           maxWidthClasses[maxWidth],
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#2e3856]">
-          <div className="text-lg font-bold text-[#f6f7fb]">{title}</div>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#2e3856] shrink-0">
+          <div className="text-base sm:text-lg font-bold text-[#f6f7fb] pr-2">{title}</div>
           <button
             onClick={onClose}
-            className="text-[#939bb4] hover:text-white p-1 rounded-lg hover:bg-[#2e3856] transition-colors"
+            className="text-[#939bb4] hover:text-white p-1 rounded-lg hover:bg-[#2e3856] transition-colors shrink-0 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6">{children}</div>
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 overscroll-contain touch-pan-y [transform:translateZ(0)] [-webkit-overflow-scrolling:touch]">
+          {children}
+        </div>
       </div>
     </div>
   );

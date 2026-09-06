@@ -339,7 +339,7 @@ export const HomePage: React.FC = () => {
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-base sm:text-lg font-bold text-white">
                   {t(
                     "home.srsAlertTitle",
@@ -347,7 +347,7 @@ export const HomePage: React.FC = () => {
                     "Daily Spaced Repetition Due Today",
                   )}
                 </h3>
-                <span className="bg-rose-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full font-mono">
+                <span className="bg-rose-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full font-mono whitespace-nowrap shrink-0">
                   {t(
                     "home.srsAlertDue",
                     { count: dueReviews.length },

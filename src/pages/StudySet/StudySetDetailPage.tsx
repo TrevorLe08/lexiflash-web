@@ -3,8 +3,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import {
-  fetchStudySetById,
   toggleStarSet,
+  updateCardStarred,
 } from "../../store/slices/studySetSlice";
 import { studySetApi } from "../../api/studySetApi";
 import { cardApi } from "../../api/cardApi";
@@ -14,9 +14,10 @@ import { addToast } from "../../store/slices/uiSlice";
 import {
   Layers,
   BrainCircuit,
-  PenTool,
+  Headphones,
   FileCheck2,
   Gamepad2,
+  PenLine,
   Star,
   Copy,
   FolderPlus,
@@ -30,7 +31,8 @@ import {
   Bookmark,
   Lock,
   Plus,
-  Check,
+  LayoutGrid,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "../../components/common/Button";
 import { FlipCard } from "../../components/study/FlipCard";
@@ -93,6 +95,7 @@ export const StudySetDetailPage: React.FC = () => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isMoreModesOpen, setIsMoreModesOpen] = useState(false);
 
   useEffect(() => {
     if (currentSet) {
@@ -252,6 +255,15 @@ export const StudySetDetailPage: React.FC = () => {
 
   const [starredCardIds, setStarredCardIds] = useState<Set<string>>(new Set());
 
+  useEffect(() => {
+    if (currentSet?.cards) {
+      const initialStarred = new Set(
+        currentSet.cards.filter((c) => Boolean(c.isStarred)).map((c) => c.id),
+      );
+      setStarredCardIds(initialStarred);
+    }
+  }, [currentSet?.cards]);
+
   const handleToggleCardStar = async (cardId: string) => {
     if (!isAuthenticated) {
       dispatch(
@@ -268,12 +280,29 @@ export const StudySetDetailPage: React.FC = () => {
     }
     try {
       const res = await cardApi.toggleStar(cardId);
+      const isStarred = res.data.isStarred;
       setStarredCardIds((prev) => {
         const next = new Set(prev);
-        if (res.data.isStarred) next.add(cardId);
+        if (isStarred) next.add(cardId);
         else next.delete(cardId);
         return next;
       });
+
+      // Synchronize TanStack Query cache
+      if (id) {
+        queryClient.setQueryData(["studySet", id], (old: any) => {
+          if (!old || !old.cards) return old;
+          return {
+            ...old,
+            cards: old.cards.map((c: any) =>
+              c.id === cardId ? { ...c, isStarred } : c,
+            ),
+          };
+        });
+      }
+
+      // Synchronize Redux currentSet for study modes
+      dispatch(updateCardStarred({ cardId, isStarred }));
     } catch {
       // ignore
     }
@@ -319,7 +348,7 @@ export const StudySetDetailPage: React.FC = () => {
     }
   };
 
-  const cards = currentSet?.cards || [];
+  const cards = useMemo(() => currentSet?.cards || [], [currentSet?.cards]);
   const currentCard = cards[previewIndex];
   const isOwner = Boolean(user && currentSet && user.id === currentSet.creatorId);
   const isStarred = Boolean(currentSet?.isStarredByCurrentUser);
@@ -376,7 +405,7 @@ export const StudySetDetailPage: React.FC = () => {
     return <EntityNotFound type="set" className="py-16" />;
   }
 
-  const studyModes = [
+  const primaryStudyModes = [
     {
       title: t("studySet.modeFlashcards", undefined, "Flashcards 3D"),
       desc: t(
@@ -400,17 +429,6 @@ export const StudySetDetailPage: React.FC = () => {
       to: `/sets/${id}/learn`,
     },
     {
-      title: t("studySet.modeWrite", undefined, "Write & Spell"),
-      desc: t(
-        "studySet.modeWriteDesc",
-        undefined,
-        "Type spelling from definition & sound",
-      ),
-      icon: PenTool,
-      color: "from-emerald-500 to-teal-600",
-      to: `/sets/${id}/write`,
-    },
-    {
       title: t("studySet.modeTest", undefined, "Test Exam"),
       desc: t(
         "studySet.modeTestDesc",
@@ -431,6 +449,33 @@ export const StudySetDetailPage: React.FC = () => {
       icon: Gamepad2,
       color: "from-pink-500 to-rose-600",
       to: `/sets/${id}/match`,
+    },
+  ];
+
+  const secondaryStudyModes = [
+    {
+      title: t("studySet.modeWrite", undefined, "Listening & Dictation"),
+      desc: t(
+        "studySet.modeWriteDesc",
+        undefined,
+        "Listen to authentic pronunciation and write the spelling",
+      ),
+      icon: Headphones,
+      color: "from-emerald-500 to-teal-600",
+      to: `/sets/${id}/write`,
+      badge: "Luyện nghe",
+    },
+    {
+      title: t("studySet.modeCloze", undefined, "Fill in the Blanks"),
+      desc: t(
+        "studySet.modeClozeDesc",
+        undefined,
+        "Fill in the missing word in context sentences",
+      ),
+      icon: PenLine,
+      color: "from-cyan-500 to-blue-600",
+      to: `/sets/${id}/cloze`,
+      badge: "Ngữ cảnh",
     },
   ];
 
@@ -557,10 +602,9 @@ export const StudySetDetailPage: React.FC = () => {
             <>
               <Link to={`/ai-generator?targetSetId=${id}`}>
                 <Button
-                  variant="secondary"
+                  variant="cyan"
                   size="sm"
-                  icon={<Sparkles className="w-4 h-4 text-cyan-400" />}
-                  className="border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
+                  icon={<Sparkles className="w-4 h-4 text-cyan-300" />}
                   title="Tạo thêm từ vựng cho học phần này bằng AI"
                 >
                   AI Thêm từ ✨
@@ -637,8 +681,8 @@ export const StudySetDetailPage: React.FC = () => {
         <h2 className="text-xl font-black text-white tracking-tight">
           {t("studySet.selectModeTitle", undefined, "Select a Study Mode")}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5">
-          {studyModes.map((mode) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+          {primaryStudyModes.map((mode) => {
             const Icon = mode.icon;
             const isFree = mode.to.includes("flashcards");
             const isLocked = !isAuthenticated && !isFree;
@@ -672,7 +716,7 @@ export const StudySetDetailPage: React.FC = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div
-                      className={`w-10 h-10 rounded-xl bg-gradient-to-br ${mode.color} flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform`}
+                      className={`w-10 h-10 shrink-0 aspect-square rounded-xl bg-gradient-to-br ${mode.color} flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform`}
                     >
                       <Icon className="w-5 h-5" />
                     </div>
@@ -697,6 +741,37 @@ export const StudySetDetailPage: React.FC = () => {
               </Link>
             );
           })}
+
+          {/* 5th Slot: Expand / More Modes Card */}
+          <button
+            type="button"
+            onClick={() => setIsMoreModesOpen(true)}
+            className="group relative bg-[#1a1d36] hover:bg-[#202545] border border-[#2e3856] hover:border-[#6366F1] rounded-2xl p-5 transition-all duration-200 flex flex-col justify-between hover:shadow-lg hover:shadow-indigo-950/50 hover:-translate-y-0.5 text-left cursor-pointer"
+          >
+            <div className="space-y-3 w-full">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform">
+                  <LayoutGrid className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold text-[#9cb1ff] bg-[#4f5fd8]/15 border border-[#4f5fd8]/30 px-2 py-0.5 rounded-full">
+                  +{secondaryStudyModes.length} chế độ
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-base font-bold text-white group-hover:text-[#6366F1] transition-colors flex items-center gap-1.5">
+                  <span>{t("studySet.modeMore", undefined, "Chế Độ Khác")}</span>
+                </h3>
+                <p className="text-xs text-[#939bb4] line-clamp-2 mt-1 leading-snug">
+                  {t(
+                    "studySet.modeMoreDesc",
+                    undefined,
+                    "Nghe chính tả, điền từ khuyết & luyện chuyên sâu...",
+                  )}
+                </p>
+              </div>
+            </div>
+          </button>
         </div>
       </div>
 
@@ -717,6 +792,8 @@ export const StudySetDetailPage: React.FC = () => {
               card={currentCard}
               isFlipped={isPreviewFlipped}
               onFlip={() => setIsPreviewFlipped(!isPreviewFlipped)}
+              isStarred={starredCardIds.has(currentCard.id)}
+              onToggleStar={() => handleToggleCardStar(currentCard.id)}
             />
 
             {/* Navigation controls */}
@@ -1120,6 +1197,114 @@ export const StudySetDetailPage: React.FC = () => {
               </div>
             );
           })()}
+        </div>
+      </Modal>
+
+      {/* 5. MORE STUDY MODES MODAL */}
+      <Modal
+        isOpen={isMoreModesOpen}
+        onClose={() => setIsMoreModesOpen(false)}
+        maxWidth="2xl"
+      >
+        <div className="p-5 sm:p-7 space-y-6">
+          <div className="flex items-center justify-between border-b border-[#2e3856]/70 pb-4">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-11 h-11 shrink-0 aspect-square rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-md">
+                <LayoutGrid className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                  {t(
+                    "studySet.moreModesModalTitle",
+                    undefined,
+                    "Các Chế Độ Học Mở Rộng",
+                  )}
+                </h3>
+                <p className="text-xs text-[#939bb4]">
+                  {t(
+                    "studySet.moreModesModalDesc",
+                    undefined,
+                    "Lựa chọn phương pháp luyện tập nâng cao để ghi nhớ từ vựng sâu và hiệu quả",
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {secondaryStudyModes.map((mode) => {
+              const Icon = mode.icon;
+              const isLocked = !isAuthenticated;
+
+              return (
+                <Link
+                  key={mode.to}
+                  to={mode.to}
+                  onClick={(e) => {
+                    if (isLocked) {
+                      e.preventDefault();
+                      dispatch(
+                        addToast({
+                          message: t(
+                            "studySet.loginRequiredMode",
+                            { mode: mode.title },
+                            `Please log in to use ${mode.title} mode`,
+                          ),
+                          type: "info",
+                        }),
+                      );
+                      setIsMoreModesOpen(false);
+                      navigate("/login");
+                    } else {
+                      setIsMoreModesOpen(false);
+                    }
+                  }}
+                  className={`group relative bg-[#141824] hover:bg-[#1f253d] border rounded-2xl p-5 transition-all duration-200 flex flex-col justify-between hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 ${
+                    isLocked
+                      ? "border-[#2e3856] opacity-85 hover:border-amber-500/50"
+                      : "border-[#2e3856] hover:border-[#6366F1]"
+                  }`}
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div
+                        className={`w-11 h-11 shrink-0 aspect-square rounded-xl bg-gradient-to-br ${mode.color} flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform`}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </div>
+
+                      {mode.badge && (
+                        <span className="text-[10px] font-bold text-[#9cb1ff] bg-[#4f5fd8]/15 border border-[#4f5fd8]/30 px-2.5 py-0.5 rounded-full">
+                          {mode.badge}
+                        </span>
+                      )}
+
+                      {isLocked && (
+                        <span className="text-[10px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Lock className="w-2.5 h-2.5" />
+                          {t("nav.login", undefined, "Log in")}
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 className="text-base font-bold text-white group-hover:text-[#6366F1] transition-colors flex items-center gap-1.5">
+                        <span>{mode.title}</span>
+                      </h4>
+                      <p className="text-xs text-[#939bb4] mt-1.5 leading-relaxed">
+                        {mode.desc}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 mt-4 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-[#9cb1ff] group-hover:text-white transition-colors">
+                    <span>{t("common.start", undefined, "Vào học ngay")}</span>
+                    <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </Modal>
 

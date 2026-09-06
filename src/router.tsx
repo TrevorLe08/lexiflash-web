@@ -60,6 +60,9 @@ const TestMode = lazy(() =>
 const MatchMode = lazy(() =>
   import("./pages/Modes/MatchMode").then((m) => ({ default: m.MatchMode })),
 );
+const ClozeMode = lazy(() =>
+  import("./pages/Modes/ClozeMode").then((m) => ({ default: m.ClozeMode })),
+);
 const AIGeneratorPage = lazy(() =>
   import("./pages/AI/AIGeneratorPage").then((m) => ({
     default: m.AIGeneratorPage,
@@ -147,6 +150,7 @@ export const router = createBrowserRouter([
       { path: "sets/:id/write", Component: WriteMode },
       { path: "sets/:id/test", Component: TestMode },
       { path: "sets/:id/match", Component: MatchMode },
+      { path: "sets/:id/cloze", Component: ClozeMode },
       { path: "ai-generator", Component: AIGeneratorPage },
       { path: "folders", Component: FoldersPage },
       { path: "folders/:id", Component: FolderDetailPage },

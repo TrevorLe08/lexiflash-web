@@ -68,6 +68,8 @@ export const studyApi = {
     cardsCorrect: number;
     cardsIncorrect: number;
     timeSpentSeconds: number;
+    correctCardIds?: string[];
+    incorrectCardIds?: string[];
   }): Promise<ApiResponse<any>> => {
     return axiosClient.post("/study/session", data);
   },

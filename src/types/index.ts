@@ -24,6 +24,7 @@ export enum StudyMode {
   WRITE = "WRITE",
   TEST = "TEST",
   MATCH = "MATCH",
+  CLOZE = "CLOZE",
 }
 
 export enum QuestionType {
@@ -87,6 +88,7 @@ export interface Card {
   imageUrl?: string;
   audioUrl?: string;
   orderIndex: number;
+  isStarred?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -255,6 +257,12 @@ export interface MatchGameCard {
   cardId: string;
   type: "term" | "definition";
   content: string;
+}
+
+export interface MatchTilesResponse {
+  tiles: MatchGameCard[];
+  totalPairs: number;
+  sessionToken: string;
 }
 
 export interface MatchLeaderboardEntry {

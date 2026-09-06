@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { fetchDueReviews } from "../../store/slices/studySlice";
@@ -48,6 +48,8 @@ export const DueReviewsPage: React.FC = () => {
   >([]);
   const [quizIndex, setQuizIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [isChecked, setIsChecked] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [answerFeedback, setAnswerFeedback] = useState<{
     isCorrect: boolean;
@@ -64,6 +66,63 @@ export const DueReviewsPage: React.FC = () => {
     }>
   >([]);
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
+  const [pressedOption, setPressedOption] = useState<string | null>(null);
+  const pressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartTimeRef = useRef<number>(0);
+
+  // Enable iOS Safari :active support
+  useEffect(() => {
+    const enableTouch = () => {};
+    window.addEventListener("touchstart", enableTouch, { passive: true });
+    return () => window.removeEventListener("touchstart", enableTouch);
+  }, []);
+
+  // Cleanup press timer on question index change or unmount
+  useEffect(() => {
+    return () => {
+      if (pressTimeoutRef.current) {
+        clearTimeout(pressTimeoutRef.current);
+        pressTimeoutRef.current = null;
+      }
+    };
+  }, [quizIndex]);
+
+  const handleTouchStartOption = (opt: string) => {
+    if (isChecked || isSubmittingAnswer) return;
+    if (pressTimeoutRef.current) {
+      clearTimeout(pressTimeoutRef.current);
+      pressTimeoutRef.current = null;
+    }
+    touchStartTimeRef.current = Date.now();
+    setPressedOption(opt);
+  };
+
+  const handleTouchEndOption = () => {
+    if (!touchStartTimeRef.current) {
+      setPressedOption(null);
+      return;
+    }
+    const elapsed = Date.now() - touchStartTimeRef.current;
+    touchStartTimeRef.current = 0;
+    const remaining = Math.max(0, 75 - elapsed);
+    if (remaining > 0) {
+      pressTimeoutRef.current = setTimeout(() => {
+        setPressedOption(null);
+        pressTimeoutRef.current = null;
+      }, remaining);
+    } else {
+      setPressedOption(null);
+    }
+  };
+
+  const handleTouchCancelOption = () => {
+    if (pressTimeoutRef.current) {
+      clearTimeout(pressTimeoutRef.current);
+      pressTimeoutRef.current = null;
+    }
+    touchStartTimeRef.current = 0;
+    setPressedOption(null);
+  };
 
   const refreshMistakeBank = async () => {
     setLoadingMistakes(true);
@@ -123,27 +182,43 @@ export const DueReviewsPage: React.FC = () => {
     setQuizQuestions(generated);
     setQuizIndex(0);
     setSelectedOption(null);
+    setIsChecked(false);
+    setIsCorrect(null);
     setAnswerFeedback(null);
     setQuizHistory([]);
     setIsQuizCompleted(false);
     setIsQuizMode(true);
   };
 
-  const handleSelectOption = async (option: string) => {
-    if (selectedOption !== null || isSubmittingAnswer) return;
+  const handleOptionSelect = (option: string) => {
+    if (isChecked || isSubmittingAnswer) return;
     setSelectedOption(option);
-    const currentQ = quizQuestions[quizIndex];
-    const isCorrect = option === currentQ.correctOption;
-    const prevLapses = currentQ.card.progress?.lapses || 1;
+  };
 
+  const handleCheckAnswer = async () => {
+    if (!selectedOption || isSubmittingAnswer) return;
+
+    if (isChecked) {
+      handleNextQuizQuestion();
+      return;
+    }
+
+    const currentQ = quizQuestions[quizIndex];
+    if (!currentQ) return;
+
+    const isCorrectAns = selectedOption === currentQ.correctOption;
+    setIsChecked(true);
+    setIsCorrect(isCorrectAns);
     setIsSubmittingAnswer(true);
-    let newLapses = isCorrect ? Math.max(0, prevLapses - 1) : prevLapses + 1;
+
+    const prevLapses = currentQ.card.progress?.lapses || 1;
+    let newLapses = isCorrectAns ? Math.max(0, prevLapses - 1) : prevLapses + 1;
     let removedFromMistakeBank = newLapses === 0;
 
     try {
       const res = await studyApi.submitMistakeAnswer({
         cardId: currentQ.card.id,
-        isCorrect,
+        isCorrect: isCorrectAns,
       });
       newLapses = res.data.lapses;
       removedFromMistakeBank = res.data.removedFromMistakeBank;
@@ -154,7 +229,7 @@ export const DueReviewsPage: React.FC = () => {
     }
 
     setAnswerFeedback({
-      isCorrect,
+      isCorrect: isCorrectAns,
       prevLapses,
       newLapses,
       removedFromMistakeBank,
@@ -165,7 +240,7 @@ export const DueReviewsPage: React.FC = () => {
       {
         cardId: currentQ.card.id,
         term: currentQ.card.term,
-        isCorrect,
+        isCorrect: isCorrectAns,
         removed: removedFromMistakeBank,
       },
     ]);
@@ -191,9 +266,16 @@ export const DueReviewsPage: React.FC = () => {
   };
 
   const handleNextQuizQuestion = () => {
+    if (pressTimeoutRef.current) {
+      clearTimeout(pressTimeoutRef.current);
+      pressTimeoutRef.current = null;
+    }
+    setPressedOption(null);
     if (quizIndex + 1 < quizQuestions.length) {
       setQuizIndex((prev) => prev + 1);
       setSelectedOption(null);
+      setIsChecked(false);
+      setIsCorrect(null);
       setAnswerFeedback(null);
     } else {
       setIsQuizCompleted(true);
@@ -203,13 +285,80 @@ export const DueReviewsPage: React.FC = () => {
     }
   };
 
+  const handleRestartQuiz = () => {
+    if (pressTimeoutRef.current) {
+      clearTimeout(pressTimeoutRef.current);
+      pressTimeoutRef.current = null;
+    }
+    setPressedOption(null);
+    if (quizQuestions.length > 0) {
+      startMistakeQuiz(quizQuestions.map((q) => q.card));
+    }
+  };
+
   const handleExitQuiz = () => {
+    if (pressTimeoutRef.current) {
+      clearTimeout(pressTimeoutRef.current);
+      pressTimeoutRef.current = null;
+    }
+    setPressedOption(null);
     setIsQuizMode(false);
     setIsQuizCompleted(false);
     setSelectedOption(null);
+    setIsChecked(false);
+    setIsCorrect(null);
     setAnswerFeedback(null);
     refreshMistakeBank();
   };
+
+  // Keyboard navigation for desktop (1-4 or A-D, Enter/Space to check or continue)
+  useEffect(() => {
+    if (!isQuizMode || isQuizCompleted) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      const currentQ = quizQuestions[quizIndex];
+      if (!currentQ) return;
+
+      if (!isChecked && !isSubmittingAnswer) {
+        const key = e.key.toUpperCase();
+        let selectedIdx = -1;
+        if (key === "1" || key === "A") selectedIdx = 0;
+        if (key === "2" || key === "B") selectedIdx = 1;
+        if (key === "3" || key === "C") selectedIdx = 2;
+        if (key === "4" || key === "D") selectedIdx = 3;
+
+        if (selectedIdx >= 0 && selectedIdx < currentQ.options.length) {
+          setSelectedOption(currentQ.options[selectedIdx]);
+          return;
+        }
+      }
+
+      if (e.key === "Enter" || e.key === " ") {
+        if (!isSubmittingAnswer && (selectedOption || isChecked)) {
+          e.preventDefault();
+          handleCheckAnswer();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    isQuizMode,
+    isQuizCompleted,
+    isChecked,
+    selectedOption,
+    quizIndex,
+    quizQuestions,
+    isSubmittingAnswer,
+  ]);
 
   if (!isAuthenticated) {
     return (
@@ -259,93 +408,82 @@ export const DueReviewsPage: React.FC = () => {
       );
 
       return (
-        <div className="max-w-2xl mx-auto space-y-8 animate-fade-in pb-16">
-          <div className="bg-[#1a1d36] border border-[#2e3856] rounded-3xl p-8 sm:p-10 shadow-2xl text-center space-y-6">
-            <div className="w-20 h-20 rounded-3xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/10">
-              <Trophy className="w-10 h-10" />
+        <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8 animate-fade-in pb-16 px-3 sm:px-0 select-none">
+          <div className="bg-[#1a1d36] border-2 border-[#2e3856] border-b-6 rounded-3xl p-6 sm:p-10 shadow-2xl text-center space-y-6">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-amber-500/20 border-2 border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto shadow-xl shadow-amber-500/15">
+              <Trophy className="w-10 h-10 sm:w-12 sm:h-12" />
             </div>
 
             <div className="space-y-2">
-              <h1 className="text-3xl font-black text-white">
-                {t(
-                  "srs.quizResultTitle",
-                  undefined,
-                  "Mistake Practice Completed! 🎉",
-                )}
+              <h1 className="text-3xl sm:text-4xl font-black text-emerald-400 tracking-tight">
+                {t("srs.quizResultTitle", undefined, "Hoàn thành!")}
               </h1>
-              <p className="text-sm text-[#939bb4]">
-                {t(
-                  "srs.quizResultSubtitle",
-                  undefined,
-                  "Summary of your recent mistake bank quiz session.",
-                )}
+              <p className="text-lg sm:text-xl font-bold text-white">
+                Điểm số: <span className="font-black text-emerald-400">{correctCount}</span> / {quizQuestions.length} điểm
               </p>
             </div>
 
             {/* Accuracy Score */}
             <div className="py-4 border-y border-[#2e3856]/60">
-              <span className="text-5xl font-black text-emerald-400">
+              <span className="text-5xl sm:text-6xl font-black text-emerald-400">
                 {accuracyPercent}%
               </span>
               <p className="text-xs font-bold text-[#939bb4] uppercase tracking-wider mt-1">
-                {t("srs.quizAccuracy", undefined, "Accuracy")}
+                {t("srs.quizAccuracy", undefined, "Độ chính xác")}
               </p>
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-[#0a092d]/60 border border-emerald-500/30 rounded-2xl p-4">
-                <div className="text-2xl font-black text-emerald-400">
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+              <div className="bg-[#0a092d]/70 border-2 border-emerald-500/30 rounded-2xl p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-black text-emerald-400">
                   {correctCount}
                 </div>
-                <div className="text-[11px] font-bold text-[#939bb4] mt-1">
-                  {t("srs.quizStatCorrect", undefined, "Correct")}
+                <div className="text-[10px] sm:text-xs font-bold text-[#939bb4] mt-1">
+                  {t("srs.quizStatCorrect", undefined, "Đúng")}
                 </div>
               </div>
 
-              <div className="bg-[#0a092d]/60 border border-rose-500/30 rounded-2xl p-4">
-                <div className="text-2xl font-black text-rose-400">
+              <div className="bg-[#0a092d]/70 border-2 border-rose-500/30 rounded-2xl p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-black text-rose-400">
                   {incorrectCount}
                 </div>
-                <div className="text-[11px] font-bold text-[#939bb4] mt-1">
-                  {t("srs.quizStatIncorrect", undefined, "Incorrect")}
+                <div className="text-[10px] sm:text-xs font-bold text-[#939bb4] mt-1">
+                  {t("srs.quizStatIncorrect", undefined, "Sai")}
                 </div>
               </div>
 
-              <div className="bg-[#0a092d]/60 border border-purple-500/30 rounded-2xl p-4">
-                <div className="text-2xl font-black text-purple-400">
+              <div className="bg-[#0a092d]/70 border-2 border-purple-500/30 rounded-2xl p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-black text-purple-400">
                   {removedCount}
                 </div>
-                <div className="text-[11px] font-bold text-[#939bb4] mt-1">
-                  {t("srs.quizStatRemoved", undefined, "Resolved (0 Mistakes)")}
+                <div className="text-[10px] sm:text-xs font-bold text-[#939bb4] mt-1">
+                  {t("srs.quizStatRemoved", undefined, "Đã giải phóng")}
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-              {mistakeCards.length > 0 && (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick={() => startMistakeQuiz(mistakeCards)}
-                  icon={<RotateCcw className="w-4 h-4" />}
-                  className="w-full sm:w-auto"
-                >
-                  {t(
-                    "srs.quizRetryRemaining",
-                    { count: mistakeCards.length },
-                    `Practice Remaining Mistakes (${mistakeCards.length})`,
-                  )}
-                </Button>
-              )}
+            {/* Action Buttons 3D */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
               <Button
-                variant="outline"
-                size="lg"
-                onClick={handleExitQuiz}
-                className="w-full sm:w-auto"
+                type="button"
+                variant="emerald"
+                size="md"
+                onClick={handleRestartQuiz}
+                icon={<RotateCcw className="w-4 h-4" />}
+                className="w-full sm:w-auto uppercase tracking-wider"
               >
-                {t("srs.quizBackToMistakes", undefined, "Back to Mistake Bank")}
+                <span>{t("srs.quizRestart", undefined, "Làm lại từ đầu?")}</span>
+              </Button>
+
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                onClick={handleExitQuiz}
+                className="w-full sm:w-auto uppercase tracking-wider"
+              >
+                <span>{t("srs.quizBackToMistakes", undefined, "Quay lại Mistake Bank")}</span>
               </Button>
             </div>
           </div>
@@ -361,159 +499,204 @@ export const DueReviewsPage: React.FC = () => {
         ? answerFeedback.newLapses
         : currentQ.card.progress?.lapses || 1;
 
+    const progressPercentage =
+      ((quizIndex + (isChecked ? 1 : 0)) / quizQuestions.length) * 100;
+
     return (
-      <div className="max-w-2xl mx-auto space-y-6 animate-fade-in pb-16">
-        {/* Quiz Top Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-black uppercase tracking-wider text-[#6366F1] bg-[#4257B2]/20 px-3 py-1 rounded-lg">
+      <div className="max-w-2xl mx-auto space-y-5 sm:space-y-6 animate-fade-in pb-20 px-3 sm:px-0 select-none">
+        {/* Top Header: Close, Progress Bar, Question Counter */}
+        <div className="w-full flex items-center gap-3 sm:gap-4 pt-2">
+          <button
+            type="button"
+            onClick={handleExitQuiz}
+            disabled={isSubmittingAnswer}
+            className={`text-[#939bb4] font-bold text-2xl p-1 -ml-1 transition-colors ${
+              isSubmittingAnswer
+                ? "opacity-30 pointer-events-none cursor-not-allowed"
+                : "hover:text-white cursor-pointer"
+            }`}
+            title={t("srs.quizExitBtn", undefined, "Thoát Quiz")}
+          >
+            ✕
+          </button>
+
+          <div className="flex-1 h-3.5 sm:h-4 bg-[#1a1d36] border border-[#2e3856] rounded-full overflow-hidden p-0.5 shadow-inner">
+            <div
+              className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out shadow-sm"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+
+          <span className="font-extrabold text-sm sm:text-base text-[#939bb4] font-mono shrink-0">
+            {quizIndex + 1}/{quizQuestions.length}
+          </span>
+        </div>
+
+        {/* Question Prompt Card */}
+        <div className="bg-[#1a1d36] border border-[#2e3856] rounded-3xl p-5 sm:p-7 shadow-xl space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs font-black uppercase tracking-wider text-[#6366F1] bg-[#4257B2]/20 border border-[#6366F1]/30 px-3 py-1 rounded-lg">
+              {t("srs.questionNum", { current: quizIndex + 1 }, `Question ${quizIndex + 1}`)}
+            </span>
+
+            <span className="text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0">
+              <Flame className="w-3.5 h-3.5 fill-rose-400 text-rose-400" />
               {t(
-                "srs.quizProgress",
-                { current: quizIndex + 1, total: quizQuestions.length },
-                `Question ${quizIndex + 1} of ${quizQuestions.length}`,
+                "srs.lapsesCount",
+                { count: currentLapses },
+                `${currentLapses} lần sai`,
               )}
             </span>
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleExitQuiz}
-            icon={<X className="w-4 h-4" />}
-            className="text-[#939bb4] hover:text-white"
-          >
-            {t("srs.quizExitBtn", undefined, "Exit Quiz")}
-          </Button>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="w-full bg-[#1a1d36] h-2 rounded-full overflow-hidden border border-[#2e3856]">
-          <div
-            className="bg-gradient-to-r from-[#6366F1] to-emerald-400 h-full transition-all duration-300"
-            style={{
-              width: `${((quizIndex + (selectedOption !== null ? 1 : 0)) / quizQuestions.length) * 100}%`,
-            }}
-          />
-        </div>
-
-        {/* Question Prompt Card */}
-        <div className="bg-[#1a1d36] border border-[#2e3856] rounded-3xl p-6 sm:p-8 shadow-xl space-y-4 relative">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h2 className="text-3xl font-black text-white tracking-tight">
-                {currentQ.card.term}
-              </h2>
-              <AudioButton text={currentQ.card.term} size="md" showAccentToggle={true} />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5 fill-rose-400" />
-                {t(
-                  "srs.lapsesCount",
-                  { count: currentLapses },
-                  `${currentLapses} lapses`,
-                )}
-              </span>
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight break-words">
+              {currentQ.card.term}
+            </h2>
+            <AudioButton
+              text={currentQ.card.term}
+              size="md"
+              showAccentToggle={true}
+              disabled={isChecked || isSubmittingAnswer}
+            />
           </div>
 
           {currentQ.card.example && (
-            <p className="text-sm text-[#939bb4] italic border-l-2 border-[#4257B2] pl-3 py-0.5">
+            <p className="text-xs sm:text-sm text-[#939bb4] italic border-l-2 border-[#4257B2] pl-3 py-1 bg-[#0a092d]/40 rounded-r-xl">
               &quot;{currentQ.card.example}&quot;
             </p>
           )}
         </div>
 
-        {/* 4 Multiple Choice Options */}
-        <div className="space-y-3">
-          {currentQ.options.map((option, idx) => {
-            const letter = String.fromCharCode(65 + idx); // A, B, C, D
-            const isSelected = selectedOption === option;
-            const isCorrectOption = option === currentQ.correctOption;
+        {/* Options Grid */}
+        <div className="grid grid-cols-1 gap-3 sm:gap-3.5">
+          {currentQ.options.map((opt, i) => {
+            const letter = String.fromCharCode(65 + i); // A, B, C, D
+            const isSelected = selectedOption === opt;
+            const isCorrectOption = opt === currentQ.correctOption;
+            const isPressed =
+              !isChecked && !isSubmittingAnswer && pressedOption === opt;
 
-            let optionStyle =
-              "bg-[#1a1d36] border-[#2e3856] hover:border-[#6366F1] text-white hover:bg-[#1f2342]";
-
-            if (selectedOption !== null) {
-              if (isSelected) {
-                if (isCorrectOption) {
-                  optionStyle =
-                    "bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-lg shadow-emerald-500/10";
-                } else {
-                  optionStyle =
-                    "bg-rose-500/20 border-rose-500 text-rose-300 shadow-lg shadow-rose-500/10";
-                }
-              } else if (isCorrectOption) {
-                optionStyle =
-                  "bg-emerald-500/10 border-emerald-500/60 text-emerald-300";
-              } else {
-                optionStyle =
-                  "bg-[#1a1d36]/50 border-[#2e3856]/40 text-[#586380] opacity-60";
+            // Status determination matching example.jsx
+            const status: "default" | "selecting" | "correct" | "wrong" = (() => {
+              if (!isChecked) {
+                return isSelected ? "selecting" : "default";
               }
-            }
+              if (isCorrectOption) return "correct";
+              if (isSelected) return "wrong";
+              return "default";
+            })();
+
+            // Styles for each status tailored for LexiFlash dark theme with sleek 1px border and 4px 3D bevel
+            const statusClasses = (() => {
+              if (isChecked) {
+                if (isCorrectOption) {
+                  return "border-emerald-500 shadow-[0_4px_0_0_#047857] bg-emerald-500/20 text-emerald-200 translate-y-0";
+                }
+                if (isSelected) {
+                  return "border-rose-500 shadow-[0_4px_0_0_#be123c] bg-rose-500/20 text-rose-200 translate-y-0";
+                }
+                return "border-[#2e3856]/40 shadow-[0_4px_0_0_#141727] bg-[#15182c]/40 text-[#5f6b88] opacity-40 translate-y-0";
+              }
+
+              if (status === "selecting") {
+                return isPressed
+                  ? "border-[#6366F1] shadow-[0_1px_0_0_#4345c7] translate-y-[3px] bg-[#6366F1]/25 text-white"
+                  : "border-[#6366F1] shadow-[0_4px_0_0_#4345c7] translate-y-0 bg-[#6366F1]/15 text-white active:translate-y-[3px] active:shadow-[0_1px_0_0_#4345c7]";
+              }
+
+              // default status
+              return isPressed
+                ? "border-[#4257B2] shadow-[0_1px_0_0_#1c2136] translate-y-[3px] bg-[#202545] text-[#d9dde8]"
+                : "border-[#2e3856] shadow-[0_4px_0_0_#1c2136] translate-y-0 bg-[#1a1d36] text-[#d9dde8] hover:bg-[#202545] hover:border-[#4257B2] hover:shadow-[0_4px_0_0_#2b3870] active:translate-y-[3px] active:shadow-[0_1px_0_0_#1c2136]";
+            })();
+
+            const letterBadgeClasses = (() => {
+              if (isChecked) {
+                if (isCorrectOption) {
+                  return "border-emerald-500 bg-emerald-500 text-white shadow-sm";
+                }
+                if (isSelected) {
+                  return "border-rose-500 bg-rose-500 text-white shadow-sm";
+                }
+                return "border-[#2e3856]/40 bg-[#0e1227]/40 text-[#5f6b88]";
+              }
+              if (status === "selecting" || isPressed) {
+                return "border-[#6366F1] bg-[#6366F1] text-white shadow-sm";
+              }
+              return "border-[#3b476d] bg-[#0e1227] text-[#939bb4] group-hover:border-[#6366F1] group-hover:text-white";
+            })();
 
             return (
               <button
-                key={idx}
-                disabled={selectedOption !== null}
-                onClick={() => handleSelectOption(option)}
-                className={`w-full text-left p-4 rounded-2xl border transition-all flex items-start gap-3.5 cursor-pointer disabled:cursor-default ${optionStyle}`}
+                key={i}
+                type="button"
+                onClick={() => handleOptionSelect(opt)}
+                onTouchStart={() => handleTouchStartOption(opt)}
+                onTouchEnd={handleTouchEndOption}
+                onTouchCancel={handleTouchCancelOption}
+                onTouchMove={handleTouchCancelOption}
+                onMouseDown={() => handleTouchStartOption(opt)}
+                onMouseUp={handleTouchEndOption}
+                disabled={isChecked || isSubmittingAnswer}
+                className={`group w-full border rounded-2xl p-3.5 sm:p-4 text-left flex items-center justify-between gap-3 select-none min-h-[62px] touch-manipulation outline-none focus:outline-none [-webkit-tap-highlight-color:transparent] transform-gpu will-change-transform transition-[transform,background-color,border-color,box-shadow,opacity] duration-100 ease-out ${
+                  !isChecked && !isSubmittingAnswer
+                    ? "cursor-pointer"
+                    : "cursor-default pointer-events-none"
+                } ${statusClasses}`}
               >
-                <span
-                  className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 border ${
-                    isSelected
-                      ? isCorrectOption
-                        ? "bg-emerald-500 text-white border-emerald-400"
-                        : "bg-rose-500 text-white border-rose-400"
-                      : selectedOption !== null && isCorrectOption
-                        ? "bg-emerald-500/40 text-white border-emerald-400"
-                        : "bg-[#0a092d] text-[#939bb4] border-[#2e3856]"
-                  }`}
-                >
-                  {letter}
-                </span>
-
-                <span className="text-sm font-semibold leading-relaxed pt-0.5 flex-1">
-                  {option}
-                </span>
-
-                {selectedOption !== null && (
-                  <span className="shrink-0 pt-0.5">
-                    {isCorrectOption ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    ) : isSelected ? (
-                      <XCircle className="w-5 h-5 text-rose-400" />
-                    ) : null}
+                <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                  <span
+                    className={`border w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm shrink-0 transition-colors duration-100 ease-out ${letterBadgeClasses}`}
+                  >
+                    {letter}
                   </span>
+                  <p className="font-bold text-sm sm:text-base leading-relaxed flex-1 break-words">
+                    {opt}
+                  </p>
+                </div>
+
+                {isChecked && (
+                  <div className="shrink-0 pl-2">
+                    {isCorrectOption ? (
+                      <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400 animate-scale-up" />
+                    ) : isSelected ? (
+                      <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-rose-400 animate-scale-up" />
+                    ) : null}
+                  </div>
                 )}
               </button>
             );
           })}
         </div>
 
-        {/* Feedback & Progression Banner */}
-        {answerFeedback !== null && (
-          <div className="space-y-4 animate-fade-in pt-2">
-            <div
-              className={`p-4 rounded-2xl border flex items-center gap-3 ${
-                answerFeedback.isCorrect
-                  ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300"
-                  : "bg-rose-500/15 border-rose-500/40 text-rose-300"
-              }`}
-            >
-              {answerFeedback.isCorrect ? (
-                <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
-              ) : (
-                <AlertTriangle className="w-6 h-6 text-rose-400 shrink-0" />
-              )}
-              <div className="text-sm font-bold leading-relaxed">
-                {answerFeedback.isCorrect
+        {/* Feedback Banner when checked */}
+        {isChecked && answerFeedback && (
+          <div
+            className={`p-4 sm:p-5 rounded-2xl border shadow-[0_4px_0_0_rgba(0,0,0,0.3)] flex items-center gap-3.5 animate-fade-in ${
+              isCorrect
+                ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-300"
+                : "bg-rose-500/15 border-rose-500/50 text-rose-300"
+            }`}
+          >
+            {isCorrect ? (
+              <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400 shrink-0" />
+            ) : (
+              <AlertTriangle className="w-6 h-6 sm:w-7 sm:h-7 text-rose-400 shrink-0" />
+            )}
+            <div className="space-y-0.5 flex-1 text-left">
+              <div className="text-base sm:text-lg font-black">
+                {isCorrect
+                  ? "Chính xác! 🎉"
+                  : `Sai rồi. Đáp án đúng là: "${currentQ.correctOption}"`}
+              </div>
+              <div className="text-xs sm:text-sm font-semibold opacity-90">
+                {isCorrect
                   ? answerFeedback.removedFromMistakeBank
                     ? t(
                         "srs.quizMasteredFeedback",
                         undefined,
-                        "Great job! Mastered and removed from Mistake Bank! 🎉",
+                        "Xuất sắc! Đã thành thạo và xóa khỏi Mistake Bank! ✨",
                       )
                     : t(
                         "srs.quizCorrectFeedback",
@@ -521,7 +704,7 @@ export const DueReviewsPage: React.FC = () => {
                           from: answerFeedback.prevLapses,
                           to: answerFeedback.newLapses,
                         },
-                        `Correct! Mistakes: ${answerFeedback.prevLapses} ➔ ${answerFeedback.newLapses}`,
+                        `Số lần sai: ${answerFeedback.prevLapses} ➔ ${answerFeedback.newLapses}`,
                       )
                   : t(
                       "srs.quizIncorrectFeedback",
@@ -529,24 +712,50 @@ export const DueReviewsPage: React.FC = () => {
                         from: answerFeedback.prevLapses,
                         to: answerFeedback.newLapses,
                       },
-                      `Incorrect! Mistakes: ${answerFeedback.prevLapses} ➔ ${answerFeedback.newLapses}`,
+                      `Số lần sai: ${answerFeedback.prevLapses} ➔ ${answerFeedback.newLapses}`,
                     )}
               </div>
             </div>
-
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={handleNextQuizQuestion}
-              icon={<ChevronRight className="w-5 h-5" />}
-              className="w-full justify-center text-base font-bold shadow-lg shadow-[#4257B2]/30 py-3.5"
-            >
-              {quizIndex + 1 < quizQuestions.length
-                ? t("studySet.next", undefined, "Next Question")
-                : t("studySet.finish", undefined, "Finish Quiz 🎯")}
-            </Button>
           </div>
         )}
+
+        {/* Action Button: Kiểm tra / Tiếp tục / Hoàn thành */}
+        <div className="pt-2 flex justify-center w-full">
+          <Button
+            type="button"
+            onClick={handleCheckAnswer}
+            disabled={(!isChecked && !selectedOption) || isSubmittingAnswer}
+            loading={isSubmittingAnswer}
+            size="lg"
+            variant={
+              !isChecked && !selectedOption
+                ? "secondary"
+                : isChecked
+                  ? isCorrect
+                    ? "emerald"
+                    : "danger"
+                  : "emerald"
+            }
+            className={`w-full sm:w-auto sm:min-w-[240px] select-none ${
+              !isChecked && !selectedOption
+                ? "bg-[#1a1d36] border-[#2e3856] shadow-[0_4px_0_0_#14182b] text-[#586380] cursor-not-allowed opacity-50"
+                : ""
+            }`}
+          >
+            {isChecked ? (
+              <>
+                <span>
+                  {quizIndex + 1 === quizQuestions.length
+                    ? "Hoàn thành"
+                    : "Tiếp tục"}
+                </span>
+                <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+              </>
+            ) : (
+              "Kiểm tra"
+            )}
+          </Button>
+        </div>
       </div>
     );
   }
@@ -725,8 +934,8 @@ export const DueReviewsPage: React.FC = () => {
                         <AudioButton text={card.term} size="sm" />
                       </div>
 
-                      <div className="flex items-center gap-1.5">
-                        {card.progress.lapses > 0 && (
+                      {card.progress.lapses > 0 && (
+                        <div className="flex items-center gap-1.5">
                           <span className="text-[10px] font-black bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
                             <Flame className="w-3 h-3 fill-rose-400" />
                             {t(
@@ -735,15 +944,8 @@ export const DueReviewsPage: React.FC = () => {
                               `${card.progress.lapses} lapses`,
                             )}
                           </span>
-                        )}
-                        <span className="text-[10px] font-bold bg-[#2e3856] text-[#939bb4] px-2 py-0.5 rounded-md">
-                          {t(
-                            "srs.easeFactor",
-                            { val: card.progress.easeFactor || 2.5 },
-                            `EF: ${card.progress.easeFactor || 2.5}`,
-                          )}
-                        </span>
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     <p className="text-sm font-semibold text-[#d9dde8]">
@@ -880,13 +1082,6 @@ export const DueReviewsPage: React.FC = () => {
                             )}
                           </span>
                         )}
-                        <span className="text-[10px] font-bold bg-[#2e3856] text-[#939bb4] px-2 py-0.5 rounded-md">
-                          {t(
-                            "srs.easeFactor",
-                            { val: card.progress.easeFactor || 2.5 },
-                            `EF: ${card.progress.easeFactor || 2.5}`,
-                          )}
-                        </span>
                       </div>
                     </div>
 

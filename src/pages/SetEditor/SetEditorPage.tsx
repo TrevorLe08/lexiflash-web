@@ -508,33 +508,40 @@ export const SetEditorPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
       {/* Top Header */}
-      <div className="flex items-center justify-between">
-        <Link
-          to={isEditMode ? `/sets/${id}` : "/"}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[#939bb4] hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{t("common.cancel", undefined, "Cancel")}</span>
-        </Link>
+      <div className="flex flex-col gap-2.5 sm:gap-4">
+        {/* Cancel Action */}
+        <div>
+          <Link
+            to={isEditMode ? `/sets/${id}` : "/"}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#939bb4] hover:text-white transition-colors py-1"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>{t("common.cancel", undefined, "Cancel")}</span>
+          </Link>
+        </div>
 
-        <h1 className="text-xl sm:text-2xl font-black text-white">
-          {isEditMode
-            ? t("setEditor.editTitle", undefined, "Edit Study Set")
-            : t("setEditor.createTitle", undefined, "Create a New Study Set")}
-        </h1>
+        {/* Section title & Save button placed below Cancel button */}
+        <div className="flex items-center justify-between gap-3 sm:gap-4">
+          <h1 className="text-lg sm:text-2xl font-black text-white leading-tight">
+            {isEditMode
+              ? t("setEditor.editTitle", undefined, "Edit Study Set")
+              : t("setEditor.createTitle", undefined, "Create a New Study Set")}
+          </h1>
 
-        <Button
-          type="button"
-          variant="gradient"
-          size="md"
-          loading={isSaving}
-          onClick={handleSave}
-          icon={<Save className="w-4 h-4" />}
-        >
-          {isEditMode
-            ? t("setEditor.saveBtn", undefined, "Save Changes")
-            : t("setEditor.createBtn", undefined, "Create Set")}
-        </Button>
+          <Button
+            type="button"
+            variant="gradient"
+            size="md"
+            loading={isSaving}
+            onClick={handleSave}
+            icon={<Save className="w-4 h-4" />}
+            className="shrink-0"
+          >
+            {isEditMode
+              ? t("setEditor.saveBtn", undefined, "Save Changes")
+              : t("setEditor.createBtn", undefined, "Create Set")}
+          </Button>
+        </div>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">

@@ -155,21 +155,30 @@ export const FoldersPage: React.FC = () => {
           className="py-20"
         />
       ) : folders.length === 0 ? (
-        <div className="text-center py-16 bg-[#1a1d36]/50 rounded-3xl border border-[#2e3856] space-y-4">
-          <FolderIcon className="w-12 h-12 text-[#586380] mx-auto" />
-          <h3 className="text-lg font-bold text-white">
+        <div className="text-center py-16 px-4 sm:px-8 bg-[#1a1d36]/50 rounded-3xl border border-[#2e3856] space-y-4 max-w-xl mx-auto">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-inner">
+            <FolderIcon className="w-8 h-8" />
+          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-white">
             {t("folders.noFoldersTitle", undefined, "No folders yet")}
           </h3>
-          <p className="text-sm text-[#939bb4]">
+          <p className="text-sm text-[#939bb4] max-w-md mx-auto leading-relaxed">
             {t(
               "folders.noFoldersDesc",
               undefined,
               "Group your study sets together into organized collections.",
             )}
           </p>
-          <Button variant="primary" onClick={() => setCreateModalOpen(true)}>
-            {t("folders.createFolderBtn", undefined, "Create First Folder")}
-          </Button>
+          <div className="pt-2">
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => setCreateModalOpen(true)}
+              icon={<Plus className="w-4 h-4" />}
+            >
+              {t("folders.createFolderBtn", undefined, "Create First Folder")}
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

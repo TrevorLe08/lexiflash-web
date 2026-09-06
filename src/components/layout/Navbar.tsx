@@ -182,7 +182,7 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#131722]/95 backdrop-blur-xl border-b border-white/[0.08]">
+    <header className="sticky top-0 z-50 bg-[#131722] border-b border-white/[0.08]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Left: Hamburger (mobile only) & Brand */}
         <div className="flex items-center gap-3 shrink-0">

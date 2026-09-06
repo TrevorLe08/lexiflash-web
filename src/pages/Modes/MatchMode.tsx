@@ -4,8 +4,9 @@ import { useAppDispatch, useAppSelector } from "../../store/store";
 import { fetchStudySetById } from "../../store/slices/studySetSlice";
 import { matchApi } from "../../api/matchApi";
 import { Button } from "../../components/common/Button";
+import { StudyHeaderBar } from "../../components/study/StudyHeaderBar";
 import { triggerConfetti } from "../../utils/confetti";
-import { ArrowLeft, Trophy, RotateCcw, Sparkles, Gamepad2 } from "lucide-react";
+import { Trophy, RotateCcw, Sparkles, Gamepad2 } from "lucide-react";
 import { Spinner } from "../../components/common/Spinner";
 import { EntityNotFound } from "../../components/common/EntityNotFound";
 import { MatchGameCard, MatchLeaderboardEntry, StudyMode } from "../../types";
@@ -27,6 +28,7 @@ export const MatchMode: React.FC = () => {
   const [wrongPairIds, setWrongPairIds] = useState<string[]>([]);
   const [correctPairIds, setCorrectPairIds] = useState<string[]>([]);
 
+  const [sessionToken, setSessionToken] = useState<string>("");
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -52,10 +54,12 @@ export const MatchMode: React.FC = () => {
     setIsGameOver(false);
     setLeaderboardResult(null);
     setElapsedMs(0);
+    setSessionToken("");
 
     try {
       const res = await matchApi.getTiles(id, 6);
       setTiles(res.data.tiles);
+      setSessionToken(res.data.sessionToken);
       setStartTime(Date.now());
     } catch {
       // ignore
@@ -126,11 +130,12 @@ export const MatchMode: React.FC = () => {
           const finalTimeMs = Date.now() - (startTime || Date.now());
           setElapsedMs(finalTimeMs);
 
-          if (isAuthenticated && id) {
+          if (isAuthenticated && id && sessionToken) {
             try {
               const result = await matchApi.submitScore(id, {
                 timeRecordMs: finalTimeMs,
                 matchedPairs: totalPairs,
+                sessionToken,
               });
               setLeaderboardResult(result.data);
             } catch {
@@ -208,30 +213,30 @@ export const MatchMode: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-12">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <Link
-          to={`/sets/${id}`}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[#939bb4] hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{t("modes.backToSet", undefined, "Back to Set")}</span>
-        </Link>
+      {/* Unified Study Header Bar */}
+      <div className="space-y-3">
+        <StudyHeaderBar
+          current={matchedCardIds.length}
+          total={tiles.length > 0 ? tiles.length / 2 : 6}
+          backUrl={`/sets/${id}`}
+        />
 
-        {/* Stopwatch timer */}
-        <div className="flex items-center gap-2 bg-[#1a1d36] border border-[#2e3856] text-white px-4 py-2 rounded-2xl font-mono text-base font-bold shadow-lg">
-          <span className="text-amber-400">⏱️</span>
-          <span>{seconds}s</span>
+        {/* Sub-bar with Stopwatch Timer and Restart Button */}
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2 bg-[#1a1d36] border border-[#2e3856] text-white px-3.5 py-1 rounded-full font-mono text-sm font-bold shadow-md">
+            <span className="text-amber-400">⏱️</span>
+            <span>{seconds}s</span>
+          </div>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={loadGame}
+            icon={<RotateCcw className="w-4 h-4" />}
+          >
+            {t("modes.restart", undefined, "Restart")}
+          </Button>
         </div>
-
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={loadGame}
-          icon={<RotateCcw className="w-4 h-4" />}
-        >
-          {t("modes.restart", undefined, "Restart")}
-        </Button>
       </div>
 
       {/* Game Board / Complete Screen */}

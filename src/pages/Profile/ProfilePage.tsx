@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { authApi } from "../../api/authApi";
@@ -29,6 +29,7 @@ import {
   EyeOff,
   Mail,
   Bookmark,
+  Settings,
 } from "lucide-react";
 import { Pagination } from "../../components/common/Pagination";
 import { UserProfile, UserRole } from "../../types";
@@ -62,6 +63,22 @@ export const ProfilePage: React.FC = () => {
   const [name, setName] = useState(user?.name || "");
   const [bio, setBio] = useState(user?.bio || "");
   const [isSaving, setIsSaving] = useState(false);
+
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const settingsMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        settingsMenuRef.current &&
+        !settingsMenuRef.current.contains(e.target as Node)
+      ) {
+        setIsSettingsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Change Password & Change Email modal states
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -264,7 +281,7 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             <p className="text-sm text-[#939bb4]">
-              @{user.username} • {user.email}
+              @{user.username}
             </p>
 
             {user.bio ? (
@@ -292,37 +309,57 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <div className="relative shrink-0" ref={settingsMenuRef}>
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => {
-              setName(user.name);
-              setBio(user.bio || "");
-              setIsEditModalOpen(true);
-            }}
-            icon={<Edit3 className="w-4 h-4" />}
+            onClick={() => setIsSettingsOpen((prev) => !prev)}
+            icon={<Settings className="w-4 h-4" />}
           >
-            {t("profile.editProfile", undefined, "Edit Profile")}
+            {t("common.settings", undefined, "Cài đặt")}
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsPasswordModalOpen(true)}
-            icon={<KeyRound className="w-4 h-4" />}
-          >
-            Đổi mật khẩu
-          </Button>
+          {isSettingsOpen && (
+            <div className="absolute right-0 mt-2 w-52 bg-[#1a1d36] border border-[#2e3856] rounded-xl shadow-2xl z-30 py-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSettingsOpen(false);
+                  setName(user.name);
+                  setBio(user.bio || "");
+                  setIsEditModalOpen(true);
+                }}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#d9dde8] hover:text-white hover:bg-[#202545] transition-colors text-left cursor-pointer"
+              >
+                <Edit3 className="w-4 h-4 text-indigo-400 shrink-0" />
+                <span>{t("profile.editProfile", undefined, "Chỉnh sửa hồ sơ")}</span>
+              </button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsEmailModalOpen(true)}
-            icon={<Mail className="w-4 h-4" />}
-          >
-            Đổi Email
-          </Button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSettingsOpen(false);
+                  setIsPasswordModalOpen(true);
+                }}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#d9dde8] hover:text-white hover:bg-[#202545] transition-colors text-left cursor-pointer"
+              >
+                <KeyRound className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>Đổi mật khẩu</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSettingsOpen(false);
+                  setIsEmailModalOpen(true);
+                }}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#d9dde8] hover:text-white hover:bg-[#202545] transition-colors text-left cursor-pointer"
+              >
+                <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Đổi Email</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -534,7 +571,9 @@ export const ProfilePage: React.FC = () => {
           <div>
             {createdSets.length === 0 ? (
               <div className="text-center py-16 bg-[#1a1d36]/50 rounded-3xl border border-[#2e3856] p-8 space-y-4">
-                <Layers className="w-12 h-12 text-[#586380] mx-auto" />
+                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto shadow-inner">
+                  <Layers className="w-8 h-8" />
+                </div>
                 <h3 className="text-lg font-bold text-white">
                   {t("profile.noSets", undefined, "No study sets created yet")}
                 </h3>
@@ -626,7 +665,9 @@ export const ProfilePage: React.FC = () => {
           <div>
             {bookmarkedSets.length === 0 ? (
               <div className="text-center py-16 bg-[#1a1d36]/50 rounded-3xl border border-[#2e3856] p-8 space-y-4">
-                <Bookmark className="w-12 h-12 text-[#586380] mx-auto" />
+                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto shadow-inner">
+                  <Bookmark className="w-8 h-8" />
+                </div>
                 <h3 className="text-lg font-bold text-white">
                   {t(
                     "profile.noBookmarks",
@@ -715,7 +756,9 @@ export const ProfilePage: React.FC = () => {
           <div>
             {createdFolders.length === 0 ? (
               <div className="text-center py-16 bg-[#1a1d36]/50 rounded-3xl border border-[#2e3856] p-8 space-y-4">
-                <FolderIcon className="w-12 h-12 text-[#586380] mx-auto" />
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-inner">
+                  <FolderIcon className="w-8 h-8" />
+                </div>
                 <h3 className="text-lg font-bold text-white">
                   {t("profile.noFolders", undefined, "No folders created yet")}
                 </h3>

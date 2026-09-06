@@ -5,9 +5,9 @@ import { fetchStudySetById } from "../../store/slices/studySetSlice";
 import { studyApi } from "../../api/studyApi";
 import { Button } from "../../components/common/Button";
 import { AudioButton } from "../../components/study/AudioButton";
+import { StudyHeaderBar } from "../../components/study/StudyHeaderBar";
 import { triggerConfetti } from "../../utils/confetti";
 import {
-  ArrowLeft,
   BrainCircuit,
   RotateCcw,
   Trophy,
@@ -183,60 +183,31 @@ export const LearnMode: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-fade-in pb-12">
-      {/* Top Header */}
-      <div className="flex items-center justify-between">
-        <Link
-          to={`/sets/${id}`}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[#939bb4] hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{t("modes.backToSet", undefined, "Back to Set")}</span>
-        </Link>
+      {/* Unified Study Header Bar */}
+      <div className="space-y-3">
+        <StudyHeaderBar
+          current={isCompleted ? cards.length : currentIndex + 1}
+          total={cards.length}
+          backUrl={`/sets/${id}`}
+          percent={progressPercent}
+        />
 
-        <div className="flex items-center gap-2 bg-[#4257B2]/20 border border-[#4257B2]/40 text-[#6366F1] px-3.5 py-1.5 rounded-full text-xs font-bold">
-          <BrainCircuit className="w-4 h-4" />
-          <span>
-            {t("modes.learnTitle", undefined, "SuperMemo-2 Adaptive SRS")}
-          </span>
-        </div>
-      </div>
-
-      {/* Progress & Mastery Summary */}
-      <div className="bg-[#1a1d36] border border-[#2e3856] rounded-2xl p-4 space-y-3">
-        <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-white">
-            {t("modes.cardProgress", {
-              current: currentIndex + 1,
-              total: cards.length,
-            })}
-          </span>
-          <span className="text-[#6366F1]">
-            {t("modes.sessionProgress", { percent: progressPercent })}
-          </span>
-        </div>
-
-        <div className="w-full bg-[#0a092d] h-2 rounded-full overflow-hidden border border-[#2e3856]">
-          <div
-            className="bg-gradient-to-r from-[#4257B2] via-[#6366F1] to-emerald-400 h-full rounded-full transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-
+        {/* SRS Mastery Summary Dots */}
         {progressSummary && (
-          <div className="flex items-center justify-between text-[11px] text-[#939bb4] pt-1">
-            <span className="flex items-center gap-1">
+          <div className="flex items-center justify-between text-xs text-[#939bb4] px-1">
+            <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
               {t("modes.masteredStat", {
                 count: progressSummary.masteredCount,
               })}
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-amber-400" />
               {t("modes.learningStat", {
                 count: progressSummary.learningCount,
               })}
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-gray-500" />
               {t("modes.notStudiedStat", {
                 count: progressSummary.notStudiedCount,

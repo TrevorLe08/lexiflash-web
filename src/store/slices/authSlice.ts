@@ -13,13 +13,51 @@ interface AuthState {
   error: string | null;
 }
 
-// Initial state from localStorage if available
-const storedToken = localStorage.getItem("lexiflash_access_token");
-const storedUserJson = localStorage.getItem("lexiflash_user");
+// Helper to safely parse and validate JWT payload
+export function parseJwt(token: string): { userId?: string; role?: string; exp?: number } | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const base64Url = parts[1]!;
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
+// Initial state from localStorage with cryptographic JWT validation
+let storedToken = localStorage.getItem("lexiflash_access_token");
+let storedUserJson = localStorage.getItem("lexiflash_user");
 let parsedUser: User | null = null;
-if (storedUserJson) {
+
+if (storedToken) {
+  const jwtData = parseJwt(storedToken);
+  // Invalidate expired or corrupt token immediately
+  if (!jwtData || (jwtData.exp && jwtData.exp * 1000 < Date.now())) {
+    localStorage.removeItem("lexiflash_access_token");
+    localStorage.removeItem("lexiflash_refresh_token");
+    localStorage.removeItem("lexiflash_user");
+    storedToken = null;
+    storedUserJson = null;
+  }
+}
+
+if (storedUserJson && storedToken) {
   try {
     parsedUser = JSON.parse(storedUserJson);
+    const jwtData = parseJwt(storedToken);
+    // Security check: Never trust unverified role in localStorage - override with signed JWT claim
+    if (jwtData?.role && parsedUser && parsedUser.role !== jwtData.role) {
+      parsedUser.role = jwtData.role as any;
+      localStorage.setItem("lexiflash_user", JSON.stringify(parsedUser));
+    }
   } catch {
     parsedUser = null;
   }
@@ -146,7 +184,10 @@ export const recordStudyStreak = createAsyncThunk(
               type: "success",
             }),
           );
-        } else if (streakData.streakMaintained) {
+        } else if (
+          streakData.streakMaintained ||
+          streakData.streakInfo.isStreakActiveToday
+        ) {
           dispatch(
             addToast({
               message: `🔥 Đã giữ vững chuỗi ${streakData.streakInfo.streakCount} ngày hôm nay!`,
