@@ -50,12 +50,13 @@ export const AiGenerateModal: React.FC<AiGenerateModalProps> = ({
   isGold,
 }) => {
   const { t } = useTranslation();
-  const { register, handleSubmit, setValue, reset, watch } = useForm<AiFormValues>({
-    defaultValues: {
-      prompt: "",
-      cardCount: 8,
-    },
-  });
+  const { register, handleSubmit, setValue, reset, watch } =
+    useForm<AiFormValues>({
+      defaultValues: {
+        prompt: "",
+        cardCount: 8,
+      },
+    });
   const cardCount = watch("cardCount");
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -99,7 +100,11 @@ export const AiGenerateModal: React.FC<AiGenerateModalProps> = ({
     } catch (err: any) {
       setErrorMsg(
         err.message ||
-          t("ai.generateFailed", undefined, "AI Generation failed. Please try again."),
+          t(
+            "ai.generateFailed",
+            undefined,
+            "AI Generation failed. Please try again.",
+          ),
       );
     } finally {
       setIsGenerating(false);
@@ -171,12 +176,16 @@ export const AiGenerateModal: React.FC<AiGenerateModalProps> = ({
                 Mở khóa Trợ lý AI với gói VIP
               </h4>
               <p className="text-xs text-[#8e98b0] max-w-sm mx-auto mt-1">
-                Tính năng tạo flashcards và giải nghĩa từ vựng chuyên sâu bằng AI
-                dành riêng cho thành viên VIP Gold & VIP Diamond.
+                Tính năng tạo flashcards và giải nghĩa từ vựng chuyên sâu bằng
+                AI dành riêng cho thành viên VIP Gold & VIP Diamond.
               </p>
             </div>
             <Link to="/vip" onClick={onClose}>
-              <Button variant="primary" size="md" icon={<Crown className="w-4 h-4" />}>
+              <Button
+                variant="primary"
+                size="md"
+                icon={<Crown className="w-4 h-4" />}
+              >
                 Nâng cấp VIP ngay 👑
               </Button>
             </Link>
@@ -184,7 +193,10 @@ export const AiGenerateModal: React.FC<AiGenerateModalProps> = ({
         ) : (
           <>
             {/* Input prompt & count */}
-            <form onSubmit={handleSubmit(handleGenerate)} className="space-y-3.5">
+            <form
+              onSubmit={handleSubmit(handleGenerate)}
+              className="space-y-3.5"
+            >
               <div>
                 <label className="block text-xs font-bold text-[#8e98b0] uppercase tracking-wider mb-1.5">
                   {t(
@@ -270,8 +282,8 @@ export const AiGenerateModal: React.FC<AiGenerateModalProps> = ({
                     <h4 className="text-sm font-bold text-white flex items-center gap-2">
                       <span>{generatedSet.title}</span>
                       <span className="text-xs font-normal text-[#8e98b0]">
-                        ({selectedIndices.length}/{generatedSet.cards.length} thẻ
-                        được chọn)
+                        ({selectedIndices.length}/{generatedSet.cards.length}{" "}
+                        thẻ được chọn)
                       </span>
                     </h4>
                     {generatedSet.description && (
@@ -323,7 +335,9 @@ export const AiGenerateModal: React.FC<AiGenerateModalProps> = ({
                               : "border-[#262e48] bg-[#131722]",
                           )}
                         >
-                          {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
+                          {isSelected && (
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          )}
                         </div>
 
                         <div className="min-w-0 flex-1 space-y-1">

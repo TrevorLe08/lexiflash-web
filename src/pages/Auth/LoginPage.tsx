@@ -83,8 +83,8 @@ export const LoginPage: React.FC = () => {
               <span>Hệ thống đang trong chế độ bảo trì</span>
             </div>
             <p className="text-amber-300/80 leading-relaxed">
-              Tài khoản học viên thông thường hiện không thể đăng nhập. Nếu bạn là
-              Quản trị viên, vui lòng truy cập qua{" "}
+              Tài khoản học viên thông thường hiện không thể đăng nhập. Nếu bạn
+              là Quản trị viên, vui lòng truy cập qua{" "}
               <Link
                 to="/admin/login"
                 className="text-amber-200 font-bold underline hover:text-white inline-flex items-center gap-1"

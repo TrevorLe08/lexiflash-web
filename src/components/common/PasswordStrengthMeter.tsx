@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React from "react";
 import { ShieldAlert, Check, X } from "lucide-react";
 import { useTranslation } from "../../i18n";
@@ -12,7 +13,9 @@ export interface PasswordValidationResult {
   isStrong: boolean;
 }
 
-export const evaluatePassword = (password: string): PasswordValidationResult => {
+export const evaluatePassword = (
+  password: string,
+): PasswordValidationResult => {
   const hasMinLength = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
   const hasLowercase = /[a-z]/.test(password);

@@ -39,70 +39,70 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-// Safe native RFC-4180 compliant CSV parser (bypasses xlsx library to avoid CVE-2023-30533)
-function parseSafeCsv(text: string): string[][] {
-  const rows: string[][] = [];
-  let currentRow: string[] = [];
-  let currentVal = "";
-  let inQuotes = false;
+  // Safe native RFC-4180 compliant CSV parser (bypasses xlsx library to avoid CVE-2023-30533)
+  function parseSafeCsv(text: string): string[][] {
+    const rows: string[][] = [];
+    let currentRow: string[] = [];
+    let currentVal = "";
+    let inQuotes = false;
 
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    const nextChar = text[i + 1];
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
 
-    if (inQuotes) {
-      if (char === '"') {
-        if (nextChar === '"') {
-          currentVal += '"';
-          i++;
+      if (inQuotes) {
+        if (char === '"') {
+          if (nextChar === '"') {
+            currentVal += '"';
+            i++;
+          } else {
+            inQuotes = false;
+          }
         } else {
-          inQuotes = false;
+          currentVal += char;
         }
       } else {
-        currentVal += char;
-      }
-    } else {
-      if (char === '"') {
-        inQuotes = true;
-      } else if (char === ",") {
-        currentRow.push(currentVal);
-        currentVal = "";
-      } else if (char === "\r") {
-        if (nextChar === "\n") {
-          i++;
+        if (char === '"') {
+          inQuotes = true;
+        } else if (char === ",") {
+          currentRow.push(currentVal);
+          currentVal = "";
+        } else if (char === "\r") {
+          if (nextChar === "\n") {
+            i++;
+          }
+          currentRow.push(currentVal);
+          rows.push(currentRow);
+          currentRow = [];
+          currentVal = "";
+        } else if (char === "\n") {
+          currentRow.push(currentVal);
+          rows.push(currentRow);
+          currentRow = [];
+          currentVal = "";
+        } else {
+          currentVal += char;
         }
-        currentRow.push(currentVal);
-        rows.push(currentRow);
-        currentRow = [];
-        currentVal = "";
-      } else if (char === "\n") {
-        currentRow.push(currentVal);
-        rows.push(currentRow);
-        currentRow = [];
-        currentVal = "";
-      } else {
-        currentVal += char;
       }
     }
+
+    if (currentVal || currentRow.length > 0) {
+      currentRow.push(currentVal);
+      rows.push(currentRow);
+    }
+
+    return rows;
   }
 
-  if (currentVal || currentRow.length > 0) {
-    currentRow.push(currentVal);
-    rows.push(currentRow);
+  // Sanitize string to prevent prototype pollution keys
+  function sanitizeCell(val: unknown): string {
+    if (val === null || val === undefined) return "";
+    const str = String(val).trim();
+    if (str === "__proto__" || str === "constructor" || str === "prototype") {
+      return "";
+    }
+    return str;
   }
-
-  return rows;
-}
-
-// Sanitize string to prevent prototype pollution keys
-function sanitizeCell(val: unknown): string {
-  if (val === null || val === undefined) return "";
-  const str = String(val).trim();
-  if (str === "__proto__" || str === "constructor" || str === "prototype") {
-    return "";
-  }
-  return str;
-}
 
   const handleFileProcess = async (selectedFile: File) => {
     setFile(selectedFile);
@@ -334,11 +334,7 @@ function sanitizeCell(val: unknown): string {
                 type="button"
                 onClick={handleReset}
                 className="p-1.5 text-[#939bb4] hover:text-white rounded-lg hover:bg-[#1a1d36] transition-colors cursor-pointer"
-                title={t(
-                  "setEditor.bulkChangeFile",
-                  undefined,
-                  "Change file",
-                )}
+                title={t("setEditor.bulkChangeFile", undefined, "Change file")}
               >
                 <X className="w-4 h-4" />
               </button>

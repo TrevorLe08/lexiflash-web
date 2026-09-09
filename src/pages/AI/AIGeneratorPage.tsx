@@ -17,8 +17,6 @@ import {
   Layers,
   ShieldCheck,
   Crown,
-  FolderPlus,
-  ArrowRight,
 } from "lucide-react";
 import { Select } from "../../components/common/Select";
 import { StudySetSelectCard } from "./StudySetSelectCard";
@@ -75,8 +73,8 @@ export const AIGeneratorPage: React.FC = () => {
           if (queryTargetSetId && sets.some((s) => s.id === queryTargetSetId)) {
             setTargetSetId(queryTargetSetId);
             setSaveMode("EXISTING_SET");
-          } else if (sets.length > 0 && !targetSetId) {
-            setTargetSetId(sets[0].id);
+          } else if (sets.length > 0) {
+            setTargetSetId((prev) => prev || sets[0].id);
           }
         })
         .catch(() => {})
@@ -414,7 +412,11 @@ export const AIGeneratorPage: React.FC = () => {
                 <label className="text-xs font-bold text-[#8e98b0] uppercase tracking-wider flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5 text-[#4f5fd8]" />
                   <span>
-                    {t("ai.destinationLabel", undefined, "Mục tiêu lưu từ vựng:")}
+                    {t(
+                      "ai.destinationLabel",
+                      undefined,
+                      "Mục tiêu lưu từ vựng:",
+                    )}
                   </span>
                 </label>
 
@@ -429,7 +431,8 @@ export const AIGeneratorPage: React.FC = () => {
                         : "text-[#8e98b0] hover:text-white",
                     )}
                   >
-                    ➕ {t("ai.createNewSetOption", undefined, "Tạo học phần mới")}
+                    ➕{" "}
+                    {t("ai.createNewSetOption", undefined, "Tạo học phần mới")}
                   </button>
                   <button
                     type="button"
@@ -441,7 +444,12 @@ export const AIGeneratorPage: React.FC = () => {
                         : "text-[#8e98b0] hover:text-white",
                     )}
                   >
-                    📥 {t("ai.addToExistingOption", undefined, "Thêm vào học phần có sẵn")}
+                    📥{" "}
+                    {t(
+                      "ai.addToExistingOption",
+                      undefined,
+                      "Thêm vào học phần có sẵn",
+                    )}
                   </button>
                 </div>
               </div>
@@ -450,7 +458,11 @@ export const AIGeneratorPage: React.FC = () => {
                 <div className="pt-2 border-t border-[#262e48]/60 space-y-2 animate-fade-in">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-[#8e98b0] uppercase tracking-wider">
-                      {t("ai.selectTargetSet", undefined, "Chọn học phần nhận từ vựng:")}
+                      {t(
+                        "ai.selectTargetSet",
+                        undefined,
+                        "Chọn học phần nhận từ vựng:",
+                      )}
                     </span>
                     {userSets.length > 0 && (
                       <span className="text-[11px] text-[#8e98b0]">

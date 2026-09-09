@@ -92,7 +92,8 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = React.memo(
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <p className="text-xs text-[#939bb4] leading-relaxed">
-            Nhập địa chỉ email mới mà bạn muốn liên kết với tài khoản. Vui lòng xác nhận mật khẩu hiện tại để đảm bảo an toàn thông tin.
+            Nhập địa chỉ email mới mà bạn muốn liên kết với tài khoản. Vui lòng
+            xác nhận mật khẩu hiện tại để đảm bảo an toàn thông tin.
           </p>
 
           {/* Current Email Display */}

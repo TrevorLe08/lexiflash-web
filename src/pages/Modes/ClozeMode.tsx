@@ -77,7 +77,11 @@ export const ClozeMode: React.FC = () => {
       const count = currentSet.cards.length;
       setQuestionCount((prev) => {
         const next =
-          prev > count ? count : prev === 10 ? Math.min(10, Math.max(1, count)) : prev;
+          prev > count
+            ? count
+            : prev === 10
+              ? Math.min(10, Math.max(1, count))
+              : prev;
         setCountInput(String(next));
         return next;
       });
@@ -87,7 +91,10 @@ export const ClozeMode: React.FC = () => {
   const handleStartPractice = () => {
     if (!currentSet?.cards || currentSet.cards.length === 0) return;
     const finalCount = countInput
-      ? Math.min(currentSet.cards.length, Math.max(1, parseInt(countInput, 10) || questionCount))
+      ? Math.min(
+          currentSet.cards.length,
+          Math.max(1, parseInt(countInput, 10) || questionCount),
+        )
       : questionCount;
     setQuestionCount(finalCount);
     setCountInput(String(finalCount));
@@ -116,7 +123,7 @@ export const ClozeMode: React.FC = () => {
       currentCard.term,
       currentCard.example,
       currentCard.definition,
-      t
+      t,
     );
   }, [currentCard, t]);
 
@@ -176,7 +183,7 @@ export const ClozeMode: React.FC = () => {
       if (isAuthenticated && id) {
         const timeSpent = Math.max(
           1,
-          Math.round((Date.now() - startTime) / 1000)
+          Math.round((Date.now() - startTime) / 1000),
         );
 
         const correctIds = correctCards.map((c) => c.id);
@@ -247,7 +254,7 @@ export const ClozeMode: React.FC = () => {
         label={t(
           "modes.loadingCloze",
           undefined,
-          "Đang tải chế độ Điền từ chỗ trống..."
+          "Đang tải chế độ Điền từ chỗ trống...",
         )}
         className="py-24"
       />
@@ -262,9 +269,12 @@ export const ClozeMode: React.FC = () => {
     return (
       <div className="max-w-md mx-auto py-16 text-center space-y-4 animate-fade-in">
         <PenLine className="w-12 h-12 text-cyan-400 mx-auto opacity-50" />
-        <h2 className="text-xl font-bold text-white">Học phần chưa có từ vựng</h2>
+        <h2 className="text-xl font-bold text-white">
+          Học phần chưa có từ vựng
+        </h2>
         <p className="text-sm text-[#939bb4]">
-          Vui lòng thêm thẻ từ vựng vào học phần trước khi luyện điền từ chỗ trống.
+          Vui lòng thêm thẻ từ vựng vào học phần trước khi luyện điền từ chỗ
+          trống.
         </p>
         <Link to={`/sets/${id}`}>
           <Button variant="primary">Quay về học phần</Button>
@@ -452,7 +462,9 @@ export const ClozeMode: React.FC = () => {
 
           <div className="flex items-center gap-1.5 text-emerald-400 font-semibold bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>{t("modes.scoreCountCorrect", { count: correctCards.length })}</span>
+            <span>
+              {t("modes.scoreCountCorrect", { count: correctCards.length })}
+            </span>
           </div>
         </div>
       </div>
@@ -553,7 +565,11 @@ export const ClozeMode: React.FC = () => {
                           <AudioButton text={item.card.term} size="sm" />
                         </div>
                         <div className="text-xs text-[#939bb4]">
-                          {t("modes.yourAnswer", undefined, "Câu trả lời của bạn:")}{" "}
+                          {t(
+                            "modes.yourAnswer",
+                            undefined,
+                            "Câu trả lời của bạn:",
+                          )}{" "}
                           <span className="line-through text-rose-300 font-mono">
                             {item.userAnswer ||
                               t("modes.emptyAnswer", undefined, "(trống)")}
@@ -570,7 +586,7 @@ export const ClozeMode: React.FC = () => {
                     {t(
                       "modes.perfectNoMistakes",
                       undefined,
-                      "Xuất sắc! Không mắc lỗi nào 🎉"
+                      "Xuất sắc! Không mắc lỗi nào 🎉",
                     )}
                   </p>
                 )}
@@ -615,7 +631,7 @@ export const ClozeMode: React.FC = () => {
               {t(
                 "modes.clozePrompt",
                 undefined,
-                "Đọc câu ngữ cảnh và điền từ thích hợp vào chỗ trống"
+                "Đọc câu ngữ cảnh và điền từ thích hợp vào chỗ trống",
               )}
             </span>
           </div>
@@ -632,8 +648,8 @@ export const ClozeMode: React.FC = () => {
             </div>
 
             {/* Hint Button & Vietnamese Definition (revealed on click) */}
-            {currentCard.definition && (
-              !showHint ? (
+            {currentCard.definition &&
+              (!showHint ? (
                 <button
                   type="button"
                   onClick={() => setShowHint(true)}
@@ -647,8 +663,12 @@ export const ClozeMode: React.FC = () => {
                   <div className="flex items-start gap-2">
                     <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold text-amber-400 mr-1">Gợi ý nghĩa:</span>
-                      <span className="text-white font-medium">{currentCard.definition}</span>
+                      <span className="font-bold text-amber-400 mr-1">
+                        Gợi ý nghĩa:
+                      </span>
+                      <span className="text-white font-medium">
+                        {currentCard.definition}
+                      </span>
                     </div>
                   </div>
                   <button
@@ -660,8 +680,7 @@ export const ClozeMode: React.FC = () => {
                     <EyeOff className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              )
-            )}
+              ))}
           </div>
 
           {/* Form / Answer Input (Regular input without syncing into the blank text) */}
@@ -674,7 +693,7 @@ export const ClozeMode: React.FC = () => {
                 placeholder={t(
                   "modes.clozeInputPlaceholder",
                   undefined,
-                  "Gõ từ còn thiếu vào đây..."
+                  "Gõ từ còn thiếu vào đây...",
                 )}
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
@@ -702,7 +721,7 @@ export const ClozeMode: React.FC = () => {
                         {t(
                           "modes.correctWellDone",
                           undefined,
-                          "Chính xác! Xuất sắc lắm. ✨"
+                          "Chính xác! Xuất sắc lắm. ✨",
                         )}
                       </span>
                     </>
@@ -713,7 +732,7 @@ export const ClozeMode: React.FC = () => {
                         {t(
                           "modes.incorrectCorrectIs",
                           undefined,
-                          "Chưa chính xác! Chính tả đúng là:"
+                          "Chưa chính xác! Chính tả đúng là:",
                         )}
                       </span>
                     </>
@@ -745,10 +764,17 @@ export const ClozeMode: React.FC = () => {
                   )}
 
                   {/* Context Form revelation if different from base term */}
-                  {clozeData.matchedWord.toLowerCase() !== currentCard.term.toLowerCase() && (
+                  {clozeData.matchedWord.toLowerCase() !==
+                    currentCard.term.toLowerCase() && (
                     <div className="text-xs text-cyan-300 font-mono pt-1">
-                      {t("modes.contextForm", undefined, "Dạng trong câu ví dụ:")}{" "}
-                      <strong className="underline decoration-cyan-400/50">{clozeData.matchedWord}</strong>
+                      {t(
+                        "modes.contextForm",
+                        undefined,
+                        "Dạng trong câu ví dụ:",
+                      )}{" "}
+                      <strong className="underline decoration-cyan-400/50">
+                        {clozeData.matchedWord}
+                      </strong>
                     </div>
                   )}
                 </div>
@@ -768,7 +794,7 @@ export const ClozeMode: React.FC = () => {
                       {t(
                         "modes.willAddToMistakeBank",
                         undefined,
-                        "Đã lưu vào Ngân hàng lỗi sai"
+                        "Đã lưu vào Ngân hàng lỗi sai",
                       )}
                     </span>
                   </div>
@@ -804,7 +830,7 @@ export const ClozeMode: React.FC = () => {
             {t(
               "modes.noCardsInSet",
               undefined,
-              "Học phần này chưa có thẻ từ vựng nào."
+              "Học phần này chưa có thẻ từ vựng nào.",
             )}
           </p>
           <Link to={`/sets/${id}`}>

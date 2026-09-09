@@ -281,7 +281,8 @@ export function useStudyTimer(
   // --------------------------------------------------------------------------
   const getAudioContext = useCallback(() => {
     if (!audioCtxRef.current) {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext || (window as any).webkitAudioContext;
       if (AudioCtx) {
         audioCtxRef.current = new AudioCtx();
       }
@@ -397,7 +398,10 @@ export function useStudyTimer(
         if (type === "RAIN") {
           filter.type = "lowpass";
           filter.frequency.setValueAtTime(1400, ctx.currentTime);
-          mainGain.gain.setValueAtTime(0.35 * volumeRef.current, ctx.currentTime);
+          mainGain.gain.setValueAtTime(
+            0.35 * volumeRef.current,
+            ctx.currentTime,
+          );
 
           source.connect(filter);
           filter.connect(mainGain);
@@ -431,7 +435,10 @@ export function useStudyTimer(
           // White noise
           filter.type = "lowpass";
           filter.frequency.setValueAtTime(2600, ctx.currentTime);
-          mainGain.gain.setValueAtTime(0.2 * volumeRef.current, ctx.currentTime);
+          mainGain.gain.setValueAtTime(
+            0.2 * volumeRef.current,
+            ctx.currentTime,
+          );
 
           source.connect(filter);
           filter.connect(mainGain);
@@ -439,7 +446,13 @@ export function useStudyTimer(
         }
 
         source.start();
-        ambientNodesRef.current = { source, gain: mainGain, filter, lfo, lfoGain };
+        ambientNodesRef.current = {
+          source,
+          gain: mainGain,
+          filter,
+          lfo,
+          lfoGain,
+        };
       } catch {
         // audio fail safe
       }
@@ -644,7 +657,9 @@ export function useStudyTimer(
     targetEndTimeRef.current = null;
     startTimestampRef.current = null;
     remainingSecondsRef.current =
-      currentMode === "CUSTOM_STOPWATCH" ? 0 : DEFAULT_TIMER_CONFIG[currentMode];
+      currentMode === "CUSTOM_STOPWATCH"
+        ? 0
+        : DEFAULT_TIMER_CONFIG[currentMode];
     stopwatchElapsedRef.current = 0;
 
     setIsRunning(false);
@@ -698,9 +713,7 @@ export function useStudyTimer(
         targetEndTime: null,
         startTimestamp: null,
         remainingSeconds:
-          newMode === "CUSTOM_STOPWATCH"
-            ? 0
-            : DEFAULT_TIMER_CONFIG[newMode],
+          newMode === "CUSTOM_STOPWATCH" ? 0 : DEFAULT_TIMER_CONFIG[newMode],
         stopwatchElapsed: 0,
         lastUpdated: now,
       };
@@ -731,7 +744,10 @@ export function useStudyTimer(
       ? 100
       : Math.min(
           100,
-          Math.max(0, ((totalDuration - timeLeft) / (totalDuration || 1)) * 100),
+          Math.max(
+            0,
+            ((totalDuration - timeLeft) / (totalDuration || 1)) * 100,
+          ),
         );
 
   return {

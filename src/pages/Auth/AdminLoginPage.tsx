@@ -42,7 +42,9 @@ export const AdminLoginPage: React.FC = () => {
 
     const trimmedIdentifier = identifier.trim();
     if (!trimmedIdentifier || !password) {
-      setError("Vui lòng nhập đầy đủ tên đăng nhập/email và mật khẩu quản trị.");
+      setError(
+        "Vui lòng nhập đầy đủ tên đăng nhập/email và mật khẩu quản trị.",
+      );
       return;
     }
 
@@ -109,9 +111,9 @@ export const AdminLoginPage: React.FC = () => {
           <div className="bg-purple-950/40 border border-purple-500/20 rounded-2xl p-3.5 flex items-start gap-3 text-xs text-purple-200/90 leading-relaxed">
             <ShieldAlert className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
             <span>
-              Chỉ các tài khoản có phân quyền <strong>Quản trị viên (ADMIN)</strong>{" "}
-              mới có thể đăng nhập. Tài khoản học viên thông thường sẽ bị từ
-              chối.
+              Chỉ các tài khoản có phân quyền{" "}
+              <strong>Quản trị viên (ADMIN)</strong> mới có thể đăng nhập. Tài
+              khoản học viên thông thường sẽ bị từ chối.
             </span>
           </div>
 

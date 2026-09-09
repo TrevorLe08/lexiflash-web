@@ -57,7 +57,8 @@ export const RegisterPage: React.FC = () => {
     if (!validation.isValid) {
       dispatch(
         addToast({
-          message: validation.firstError || "Vui lòng kiểm tra lại thông tin đăng ký.",
+          message:
+            validation.firstError || "Vui lòng kiểm tra lại thông tin đăng ký.",
           type: "error",
         }),
       );
@@ -79,7 +80,12 @@ export const RegisterPage: React.FC = () => {
     }
 
     const resultAction = await dispatch(
-      registerUser({ name: name.trim(), username: username.trim(), email: email.trim(), password }),
+      registerUser({
+        name: name.trim(),
+        username: username.trim(),
+        email: email.trim(),
+        password,
+      }),
     );
     if (registerUser.fulfilled.match(resultAction)) {
       navigate("/");
@@ -132,7 +138,11 @@ export const RegisterPage: React.FC = () => {
             onChange={(e) => setUsername(e.target.value)}
             onBlur={() => setTouched((prev) => ({ ...prev, username: true }))}
             error={usernameError || undefined}
-            hint={!usernameError ? "Tối thiểu 2 ký tự, chỉ gồm chữ, số và _" : undefined}
+            hint={
+              !usernameError
+                ? "Tối thiểu 2 ký tự, chỉ gồm chữ, số và _"
+                : undefined
+            }
             required
           />
 

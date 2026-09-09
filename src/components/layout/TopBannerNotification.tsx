@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { X, ArrowRight } from 'lucide-react';
-import { systemApi } from '../../api/systemApi';
-import { BannerNotificationConfig } from '../../types/system.types';
-import { BANNER_COLOR_MAP } from './bannerColors';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { X, ArrowRight } from "lucide-react";
+import { systemApi } from "../../api/systemApi";
+import { BannerNotificationConfig } from "../../types/system.types";
+import { BANNER_COLOR_MAP } from "./bannerColors";
+import { sanitizeUrl } from "../../utils/url.utils";
 
-const STORAGE_KEY = 'lexiflash_dismissed_banner_id';
+const STORAGE_KEY = "lexiflash_dismissed_banner_id";
 
 export const TopBannerNotification: React.FC = () => {
   const [banner, setBanner] = useState<BannerNotificationConfig | null>(null);
@@ -40,10 +41,13 @@ export const TopBannerNotification: React.FC = () => {
     const handleBannerUpdate = () => {
       fetchBanner();
     };
-    window.addEventListener('lexiflash_banner_updated', handleBannerUpdate);
+    window.addEventListener("lexiflash_banner_updated", handleBannerUpdate);
 
     return () => {
-      window.removeEventListener('lexiflash_banner_updated', handleBannerUpdate);
+      window.removeEventListener(
+        "lexiflash_banner_updated",
+        handleBannerUpdate,
+      );
     };
   }, []);
 
@@ -64,7 +68,10 @@ export const TopBannerNotification: React.FC = () => {
   const isExternalLink = banner.linkUrl && /^https?:\/\//i.test(banner.linkUrl);
 
   // Calculate smooth reading duration (faster for short text, steady for long text)
-  const marqueeDuration = Math.max(16, Math.min(45, Math.round(banner.message.length * 0.3)));
+  const marqueeDuration = Math.max(
+    16,
+    Math.min(45, Math.round(banner.message.length * 0.3)),
+  );
 
   return (
     <div
@@ -73,8 +80,8 @@ export const TopBannerNotification: React.FC = () => {
         style.container
       } ${
         isClosing
-          ? 'max-h-0 opacity-0 py-0 -translate-y-2'
-          : 'max-h-14 opacity-100 py-1.5 sm:py-2'
+          ? "max-h-0 opacity-0 py-0 -translate-y-2"
+          : "max-h-14 opacity-100 py-1.5 sm:py-2"
       }`}
     >
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 flex items-center justify-between gap-2 text-xs sm:text-sm">
@@ -107,20 +114,20 @@ export const TopBannerNotification: React.FC = () => {
               <span className="shrink-0 inline-flex items-center">
                 {isExternalLink ? (
                   <a
-                    href={banner.linkUrl}
+                    href={sanitizeUrl(banner.linkUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold shadow-xs hover:opacity-95 transition-opacity ${style.button}`}
                   >
-                    <span>{banner.linkText || 'Khám phá ngay'}</span>
+                    <span>{banner.linkText || "Khám phá ngay"}</span>
                     <ArrowRight className="w-3 h-3" />
                   </a>
                 ) : (
                   <Link
-                    to={banner.linkUrl}
+                    to={sanitizeUrl(banner.linkUrl)}
                     className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold shadow-xs hover:opacity-95 transition-opacity ${style.button}`}
                   >
-                    <span>{banner.linkText || 'Khám phá ngay'}</span>
+                    <span>{banner.linkText || "Khám phá ngay"}</span>
                     <ArrowRight className="w-3 h-3" />
                   </Link>
                 )}

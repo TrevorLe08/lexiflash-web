@@ -1,11 +1,5 @@
 export type BannerColor =
-  | 'red'
-  | 'amber'
-  | 'emerald'
-  | 'blue'
-  | 'purple'
-  | 'cyan'
-  | 'dark';
+  "red" | "amber" | "emerald" | "blue" | "purple" | "cyan" | "dark";
 
 export interface BannerNotificationConfig {
   id: string;
@@ -24,4 +18,3 @@ export interface MaintenanceConfig {
   estimatedEndTime?: string;
   updatedAt: string;
 }
-

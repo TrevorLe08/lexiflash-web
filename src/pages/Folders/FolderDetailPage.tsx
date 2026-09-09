@@ -70,6 +70,44 @@ export const FolderDetailPage: React.FC = () => {
     );
   }, [mySets, debouncedSearchQuery]);
 
+  // Folder Sets Pagination (max 8 sets per page)
+  const FOLDER_SETS_PER_PAGE = 8;
+  const [folderCurrentPage, setFolderCurrentPage] = useState(1);
+
+  const totalFolderSets = folder?.studySets?.length || 0;
+  const totalFolderPages =
+    Math.ceil(totalFolderSets / FOLDER_SETS_PER_PAGE) || 1;
+
+  useEffect(() => {
+    setFolderCurrentPage(1);
+  }, [id]);
+
+  useEffect(() => {
+    if (folderCurrentPage > totalFolderPages) {
+      setFolderCurrentPage(totalFolderPages);
+    }
+  }, [folderCurrentPage, totalFolderPages]);
+
+  const paginatedFolderSets = useMemo(() => {
+    const studySets = folder?.studySets;
+    if (!studySets) return [];
+    const start = (folderCurrentPage - 1) * FOLDER_SETS_PER_PAGE;
+    return studySets.slice(start, start + FOLDER_SETS_PER_PAGE);
+  }, [folder, folderCurrentPage]);
+
+  const handleFolderPageChange = (newPage: number) => {
+    setFolderCurrentPage(newPage);
+    const el = document.getElementById("folder-sets-section");
+    if (el) {
+      const yOffset = -90;
+      const y =
+        el.getBoundingClientRect().top +
+        (window.scrollY ?? window.pageYOffset ?? 0) +
+        yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }
+  };
+
   useEffect(() => {
     if (id) {
       setLoading(true);
@@ -202,9 +240,7 @@ export const FolderDetailPage: React.FC = () => {
 
   const handleToggleSelectSet = (setId: string) => {
     setSelectedSetIds((prev) =>
-      prev.includes(setId)
-        ? prev.filter((i) => i !== setId)
-        : [...prev, setId],
+      prev.includes(setId) ? prev.filter((i) => i !== setId) : [...prev, setId],
     );
   };
 
@@ -341,19 +377,28 @@ export const FolderDetailPage: React.FC = () => {
       </div>
 
       {/* Sets List inside this folder */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">
-            {t("folders.detailTitle", undefined, "Study Sets in this Folder")}
-          </h2>
+      <div id="folder-sets-section" className="space-y-4 scroll-mt-24">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              {t("folders.detailTitle", undefined, "Study Sets in this Folder")}
+            </h2>
+            {totalFolderSets > 0 && (
+              <span className="text-xs font-bold text-indigo-400 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-0.5 rounded-full shrink-0">
+                {totalFolderSets}{" "}
+                {t("studySet.setsCount", undefined, "học phần")}
+              </span>
+            )}
+          </div>
           {isOwner && (
             <Button
               variant="primary"
               size="sm"
               icon={<Plus className="w-4 h-4" />}
               onClick={openAddSetModal}
+              className="w-full sm:w-auto justify-center whitespace-nowrap shadow-sm shadow-indigo-500/20 shrink-0 cursor-pointer"
             >
-              {t("folders.addSetsBtn", undefined, "Thêm học phần")}
+              {t("folders.addSetsBtn", undefined, "Thêm học phần vào thư mục")}
             </Button>
           )}
         </div>
@@ -374,55 +419,91 @@ export const FolderDetailPage: React.FC = () => {
                 icon={<Plus className="w-4 h-4" />}
                 onClick={openAddSetModal}
               >
-                {t("folders.addSetsBtn", undefined, "Thêm học phần")}
+                {t(
+                  "folders.addSetsBtn",
+                  undefined,
+                  "Thêm học phần vào thư mục",
+                )}
               </Button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {folder.studySets?.map((set) => (
-              <div
-                key={set.id}
-                className="bg-[#1a1d36] border border-[#2e3856] rounded-2xl p-5 hover:border-[#4257B2] transition-colors flex items-center justify-between gap-3 shadow-md"
-              >
-                <Link to={`/sets/${set.id}`} className="space-y-1 block flex-1">
-                  <span className="text-[11px] font-bold text-[#6366F1] bg-[#4257B2]/20 px-2 py-0.5 rounded">
-                    {t(
-                      "studySet.termsCount",
-                      { count: set.cardCount || set.cards?.length || 0 },
-                      `${set.cardCount || set.cards?.length || 0} terms`,
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {paginatedFolderSets.map((set) => (
+                <div
+                  key={set.id}
+                  className="group bg-[#1a1d36] hover:bg-[#1e223f] border border-[#2e3856] hover:border-[#4f5fd8]/60 rounded-2xl p-4 sm:p-5 transition-all duration-200 flex items-center justify-between gap-3 shadow-md"
+                >
+                  <Link
+                    to={`/sets/${set.id}`}
+                    className="space-y-1.5 block flex-1 min-w-0 pr-1"
+                  >
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[11px] font-extrabold text-[#6366F1] bg-[#4257B2]/20 px-2.5 py-0.5 rounded-md shrink-0">
+                        {t(
+                          "studySet.termsCount",
+                          { count: set.cardCount ?? set.cards?.length ?? 0 },
+                          `${set.cardCount ?? set.cards?.length ?? 0} từ vựng`,
+                        )}
+                      </span>
+                      {set.level && (
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700/60 shrink-0">
+                          {set.level}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-base font-bold text-white group-hover:text-indigo-200 transition-colors line-clamp-1 break-words">
+                      {set.title}
+                    </h3>
+                    {set.description && (
+                      <p className="text-xs text-[#939bb4] line-clamp-1 break-words">
+                        {set.description}
+                      </p>
                     )}
-                  </span>
-                  <h3 className="text-base font-bold text-white line-clamp-1">
-                    {set.title}
-                  </h3>
-                  {set.description && (
-                    <p className="text-xs text-[#939bb4] line-clamp-1">
-                      {set.description}
-                    </p>
-                  )}
-                </Link>
-
-                <div className="flex items-center gap-2">
-                  <Link to={`/sets/${set.id}`}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon={<ArrowRight className="w-4 h-4" />}
-                    />
                   </Link>
-                  {isOwner && (
-                    <button
-                      onClick={() => setRemoveSetTargetId(set.id)}
-                      className="text-[#939bb4] hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 text-xs cursor-pointer"
-                      title="Remove from folder"
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Link
+                      to={`/sets/${set.id}`}
+                      className="p-2 rounded-xl text-[#939bb4] hover:text-white hover:bg-white/10 transition-colors"
+                      title="Xem học phần"
+                      aria-label="Xem học phần"
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    {isOwner && (
+                      <button
+                        type="button"
+                        onClick={() => setRemoveSetTargetId(set.id)}
+                        className="text-[#939bb4] hover:text-red-400 p-2 rounded-xl hover:bg-red-500/10 transition-colors cursor-pointer"
+                        title="Xóa khỏi thư mục"
+                        aria-label="Xóa khỏi thư mục"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Pagination for Folder Study Sets (Max 8 sets per page) */}
+            {totalFolderPages > 1 && (
+              <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#2e3856]/60">
+                <span className="text-xs text-[#8e98b0]">
+                  {t("common.page", undefined, "Trang")} {folderCurrentPage} /{" "}
+                  {totalFolderPages} • {totalFolderSets}{" "}
+                  {t("studySet.setsCount", undefined, "học phần")} (tối đa 8 /
+                  trang)
+                </span>
+                <Pagination
+                  currentPage={folderCurrentPage}
+                  totalPages={totalFolderPages}
+                  onPageChange={handleFolderPageChange}
+                />
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
@@ -594,108 +675,115 @@ export const FolderDetailPage: React.FC = () => {
                 </Button>
               </Link>
             </div>
-          ) : (() => {
-            const SETS_PER_PAGE = 5;
-            const totalPages =
-              Math.ceil(filteredSets.length / SETS_PER_PAGE) || 1;
-            const paginatedSets = filteredSets.slice(
-              (setModalPage - 1) * SETS_PER_PAGE,
-              setModalPage * SETS_PER_PAGE,
-            );
+          ) : (
+            (() => {
+              const SETS_PER_PAGE = 5;
+              const totalPages =
+                Math.ceil(filteredSets.length / SETS_PER_PAGE) || 1;
+              const paginatedSets = filteredSets.slice(
+                (setModalPage - 1) * SETS_PER_PAGE,
+                setModalPage * SETS_PER_PAGE,
+              );
 
-            if (filteredSets.length === 0) {
+              if (filteredSets.length === 0) {
+                return (
+                  <div className="text-center py-8 text-sm text-[#939bb4]">
+                    {t(
+                      "common.noResults",
+                      undefined,
+                      "No study sets found matching your search.",
+                    )}
+                  </div>
+                );
+              }
+
               return (
-                <div className="text-center py-8 text-sm text-[#939bb4]">
-                  {t(
-                    "common.noResults",
-                    undefined,
-                    "No study sets found matching your search.",
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    {paginatedSets.map((set) => {
+                      const alreadyInFolder =
+                        folder?.studySetIds?.includes(set.id) ||
+                        folder?.studySets?.some((s) => s.id === set.id);
+                      const isSelected = selectedSetIds.includes(set.id);
+
+                      return (
+                        <div
+                          key={set.id}
+                          onClick={() => {
+                            if (!alreadyInFolder) handleToggleSelectSet(set.id);
+                          }}
+                          className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                            alreadyInFolder
+                              ? "bg-[#0a092d]/40 border-[#2e3856]/40 opacity-60 cursor-not-allowed"
+                              : isSelected
+                                ? "bg-indigo-950/40 border-[#6366F1] ring-1 ring-[#6366F1] cursor-pointer"
+                                : "bg-[#0a092d] border-[#2e3856] hover:border-[#4257B2] cursor-pointer"
+                          }`}
+                        >
+                          <div className="min-w-0 space-y-0.5">
+                            <h4 className="text-sm font-bold text-white truncate">
+                              {set.title}
+                            </h4>
+                            <p className="text-xs text-[#939bb4]">
+                              {t(
+                                "studySet.termsCount",
+                                {
+                                  count:
+                                    set.cardCount || set.cards?.length || 0,
+                                },
+                                `${set.cardCount || set.cards?.length || 0} terms`,
+                              )}{" "}
+                              • Level: {set.level || "INTERMEDIATE"}
+                            </p>
+                          </div>
+
+                          <div className="shrink-0">
+                            {alreadyInFolder ? (
+                              <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
+                                {t(
+                                  "classes.alreadyAddedBadge",
+                                  undefined,
+                                  "Added ✓",
+                                )}
+                              </span>
+                            ) : (
+                              <div
+                                className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-colors ${
+                                  isSelected
+                                    ? "bg-[#6366F1] border-[#6366F1] text-white"
+                                    : "border-[#3c476c] bg-[#1a1d36]"
+                                }`}
+                              >
+                                {isSelected && (
+                                  <Check className="w-3.5 h-3.5" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Pagination (Max 5 items per page) */}
+                  {totalPages > 1 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-[#2e3856]/70">
+                      <span className="text-xs text-[#939bb4]">
+                        {t("common.page", undefined, "Page")} {setModalPage} /{" "}
+                        {totalPages} ({filteredSets.length}{" "}
+                        {t("home.studySetsTitle", undefined, "study sets")})
+                      </span>
+                      <Pagination
+                        currentPage={setModalPage}
+                        totalPages={totalPages}
+                        onPageChange={setSetModalPage}
+                      />
+                    </div>
                   )}
                 </div>
               );
-            }
-
-            return (
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  {paginatedSets.map((set) => {
-                    const alreadyInFolder =
-                      folder?.studySetIds?.includes(set.id) ||
-                      folder?.studySets?.some((s) => s.id === set.id);
-                    const isSelected = selectedSetIds.includes(set.id);
-
-                    return (
-                      <div
-                        key={set.id}
-                        onClick={() => {
-                          if (!alreadyInFolder) handleToggleSelectSet(set.id);
-                        }}
-                        className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
-                          alreadyInFolder
-                            ? "bg-[#0a092d]/40 border-[#2e3856]/40 opacity-60 cursor-not-allowed"
-                            : isSelected
-                              ? "bg-indigo-950/40 border-[#6366F1] ring-1 ring-[#6366F1] cursor-pointer"
-                              : "bg-[#0a092d] border-[#2e3856] hover:border-[#4257B2] cursor-pointer"
-                        }`}
-                      >
-                        <div className="min-w-0 space-y-0.5">
-                          <h4 className="text-sm font-bold text-white truncate">
-                            {set.title}
-                          </h4>
-                          <p className="text-xs text-[#939bb4]">
-                            {t(
-                              "studySet.termsCount",
-                              { count: set.cardCount || set.cards?.length || 0 },
-                              `${set.cardCount || set.cards?.length || 0} terms`,
-                            )}{" "}
-                            • Level: {set.level || "INTERMEDIATE"}
-                          </p>
-                        </div>
-
-                        <div className="shrink-0">
-                          {alreadyInFolder ? (
-                            <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
-                              {t(
-                                "classes.alreadyAddedBadge",
-                                undefined,
-                                "Added ✓",
-                              )}
-                            </span>
-                          ) : (
-                            <div
-                              className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-colors ${
-                                isSelected
-                                  ? "bg-[#6366F1] border-[#6366F1] text-white"
-                                  : "border-[#3c476c] bg-[#1a1d36]"
-                              }`}
-                            >
-                              {isSelected && <Check className="w-3.5 h-3.5" />}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Pagination (Max 5 items per page) */}
-                {totalPages > 1 && (
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-[#2e3856]/70">
-                    <span className="text-xs text-[#939bb4]">
-                      {t("common.page", undefined, "Page")} {setModalPage} /{" "}
-                      {totalPages} ({filteredSets.length}{" "}
-                      {t("home.studySetsTitle", undefined, "study sets")})
-                    </span>
-                    <Pagination
-                      currentPage={setModalPage}
-                      totalPages={totalPages}
-                      onPageChange={setSetModalPage}
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          })()}
+            })()
+          )}
 
           <div className="flex items-center justify-between pt-4 border-t border-[#2e3856]">
             <span className="text-xs text-[#939bb4]">

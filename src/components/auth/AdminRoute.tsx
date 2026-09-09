@@ -68,8 +68,8 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
             Administrator Access Required
           </h2>
           <p className="text-sm text-[#939bb4]">
-            This portal is strictly restricted to verified system administrators.
-            Your account does not have sufficient permissions.
+            This portal is strictly restricted to verified system
+            administrators. Your account does not have sufficient permissions.
           </p>
         </div>
         <Link to="/">

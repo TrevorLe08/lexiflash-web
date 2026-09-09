@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback, Suspense } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  Suspense,
+} from "react";
 import { Outlet, useLocation, Link } from "react-router-dom";
 import { TopBannerNotification } from "./TopBannerNotification";
 import { Navbar } from "./Navbar";
@@ -23,7 +29,8 @@ export const AppLayout: React.FC = () => {
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const user = useAppSelector((state) => state.auth.user);
 
-  const [maintenanceConfig, setMaintenanceConfig] = useState<MaintenanceConfig | null>(null);
+  const [maintenanceConfig, setMaintenanceConfig] =
+    useState<MaintenanceConfig | null>(null);
 
   const isAdmin = user?.role === UserRole.ADMIN;
 
@@ -41,16 +48,26 @@ export const AppLayout: React.FC = () => {
     const onMaintenanceUpdated = () => {
       fetchMaintenance();
     };
-    window.addEventListener("lexiflash_maintenance_updated", onMaintenanceUpdated);
+    window.addEventListener(
+      "lexiflash_maintenance_updated",
+      onMaintenanceUpdated,
+    );
     return () => {
-      window.removeEventListener("lexiflash_maintenance_updated", onMaintenanceUpdated);
+      window.removeEventListener(
+        "lexiflash_maintenance_updated",
+        onMaintenanceUpdated,
+      );
     };
   }, [fetchMaintenance]);
 
   // When switching routes/pages, default to top of page
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" as any });
-    document.documentElement.scrollTo({ top: 0, left: 0, behavior: "instant" as any });
+    document.documentElement.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "instant" as any,
+    });
     document.body.scrollTo({ top: 0, left: 0, behavior: "instant" as any });
     if (mainRef.current) {
       mainRef.current.scrollTo({ top: 0, left: 0, behavior: "instant" as any });
@@ -72,7 +89,10 @@ export const AppLayout: React.FC = () => {
   // If maintenance is active and user is NOT an Admin
   if (isMaintenanceActive && !isAdmin) {
     // Keep /login and /admin/login open for administrators to log in
-    if (location.pathname === "/login" || location.pathname === "/admin/login") {
+    if (
+      location.pathname === "/login" ||
+      location.pathname === "/admin/login"
+    ) {
       const isAdminLogin = location.pathname === "/admin/login";
       return (
         <div className="min-h-screen bg-[#131722] text-[#f1f3f9] flex flex-col selection:bg-[#4f5fd8]/30 selection:text-white">

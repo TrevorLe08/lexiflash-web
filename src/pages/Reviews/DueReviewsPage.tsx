@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { fetchDueReviews } from "../../store/slices/studySlice";
@@ -8,6 +8,7 @@ import { Button } from "../../components/common/Button";
 import { AudioButton } from "../../components/study/AudioButton";
 import { Spinner } from "../../components/common/Spinner";
 import { triggerConfetti } from "../../utils/confetti";
+import { Pagination } from "../../components/common/Pagination";
 import {
   BookOpen,
   BrainCircuit,
@@ -87,6 +88,69 @@ export const DueReviewsPage: React.FC = () => {
     hard: 0,
     forgot: 0,
   });
+
+  // Pagination State (Max 10 per page)
+  const REVIEWS_PER_PAGE = 10;
+  const [dueCurrentPage, setDueCurrentPage] = useState(1);
+  const [mistakeCurrentPage, setMistakeCurrentPage] = useState(1);
+
+  const totalDuePages = Math.max(
+    1,
+    Math.ceil(dueReviews.length / REVIEWS_PER_PAGE),
+  );
+  const totalMistakePages = Math.max(
+    1,
+    Math.ceil(mistakeCards.length / REVIEWS_PER_PAGE),
+  );
+
+  // Reset or clamp current page if count shrinks
+  useEffect(() => {
+    if (dueCurrentPage > totalDuePages) {
+      setDueCurrentPage(totalDuePages);
+    }
+  }, [dueCurrentPage, totalDuePages]);
+
+  useEffect(() => {
+    if (mistakeCurrentPage > totalMistakePages) {
+      setMistakeCurrentPage(totalMistakePages);
+    }
+  }, [mistakeCurrentPage, totalMistakePages]);
+
+  const paginatedDueReviews = useMemo(() => {
+    const start = (dueCurrentPage - 1) * REVIEWS_PER_PAGE;
+    return dueReviews.slice(start, start + REVIEWS_PER_PAGE);
+  }, [dueReviews, dueCurrentPage]);
+
+  const paginatedMistakeCards = useMemo(() => {
+    const start = (mistakeCurrentPage - 1) * REVIEWS_PER_PAGE;
+    return mistakeCards.slice(start, start + REVIEWS_PER_PAGE);
+  }, [mistakeCards, mistakeCurrentPage]);
+
+  const handleDuePageChange = (newPage: number) => {
+    setDueCurrentPage(newPage);
+    const el = document.getElementById("srs-due-section");
+    if (el) {
+      const yOffset = -90;
+      const y =
+        el.getBoundingClientRect().top +
+        (window.scrollY ?? window.pageYOffset ?? 0) +
+        yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }
+  };
+
+  const handleMistakePageChange = (newPage: number) => {
+    setMistakeCurrentPage(newPage);
+    const el = document.getElementById("srs-mistakes-section");
+    if (el) {
+      const yOffset = -90;
+      const y =
+        el.getBoundingClientRect().top +
+        (window.scrollY ?? window.pageYOffset ?? 0) +
+        yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }
+  };
 
   // Enable iOS Safari :active support
   useEffect(() => {
@@ -515,12 +579,7 @@ export const DueReviewsPage: React.FC = () => {
 
     window.addEventListener("keydown", handleDueKeyDown);
     return () => window.removeEventListener("keydown", handleDueKeyDown);
-  }, [
-    isDueReviewMode,
-    isDueCompleted,
-    dueShowAnswer,
-    isSubmittingDue,
-  ]);
+  }, [isDueReviewMode, isDueCompleted, dueShowAnswer, isSubmittingDue]);
 
   if (!isAuthenticated) {
     return (
@@ -581,7 +640,11 @@ export const DueReviewsPage: React.FC = () => {
                 {t("srs.quizResultTitle", undefined, "Hoàn thành!")}
               </h1>
               <p className="text-lg sm:text-xl font-bold text-white">
-                Điểm số: <span className="font-black text-emerald-400">{correctCount}</span> / {quizQuestions.length} điểm
+                Điểm số:{" "}
+                <span className="font-black text-emerald-400">
+                  {correctCount}
+                </span>{" "}
+                / {quizQuestions.length} điểm
               </p>
             </div>
 
@@ -635,7 +698,9 @@ export const DueReviewsPage: React.FC = () => {
                 icon={<RotateCcw className="w-4 h-4" />}
                 className="w-full sm:w-auto uppercase tracking-wider"
               >
-                <span>{t("srs.quizRestart", undefined, "Làm lại từ đầu?")}</span>
+                <span>
+                  {t("srs.quizRestart", undefined, "Làm lại từ đầu?")}
+                </span>
               </Button>
 
               <Button
@@ -645,7 +710,13 @@ export const DueReviewsPage: React.FC = () => {
                 onClick={handleExitQuiz}
                 className="w-full sm:w-auto uppercase tracking-wider"
               >
-                <span>{t("srs.quizBackToMistakes", undefined, "Quay lại Mistake Bank")}</span>
+                <span>
+                  {t(
+                    "srs.quizBackToMistakes",
+                    undefined,
+                    "Quay lại Mistake Bank",
+                  )}
+                </span>
               </Button>
             </div>
           </div>
@@ -698,7 +769,11 @@ export const DueReviewsPage: React.FC = () => {
         <div className="bg-[#1a1d36] border border-[#2e3856] rounded-3xl p-5 sm:p-7 shadow-xl space-y-4">
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs font-black uppercase tracking-wider text-[#6366F1] bg-[#4257B2]/20 border border-[#6366F1]/30 px-3 py-1 rounded-lg">
-              {t("srs.questionNum", { current: quizIndex + 1 }, `Question ${quizIndex + 1}`)}
+              {t(
+                "srs.questionNum",
+                { current: quizIndex + 1 },
+                `Question ${quizIndex + 1}`,
+              )}
             </span>
 
             <span className="text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0">
@@ -740,14 +815,15 @@ export const DueReviewsPage: React.FC = () => {
               !isChecked && !isSubmittingAnswer && pressedOption === opt;
 
             // Status determination matching example.jsx
-            const status: "default" | "selecting" | "correct" | "wrong" = (() => {
-              if (!isChecked) {
-                return isSelected ? "selecting" : "default";
-              }
-              if (isCorrectOption) return "correct";
-              if (isSelected) return "wrong";
-              return "default";
-            })();
+            const status: "default" | "selecting" | "correct" | "wrong" =
+              (() => {
+                if (!isChecked) {
+                  return isSelected ? "selecting" : "default";
+                }
+                if (isCorrectOption) return "correct";
+                if (isSelected) return "wrong";
+                return "default";
+              })();
 
             // Styles for each status tailored for LexiFlash dark theme with sleek 1px border and 4px 3D bevel
             const statusClasses = (() => {
@@ -927,9 +1003,7 @@ export const DueReviewsPage: React.FC = () => {
     const currentCard = dueReviewCards[dueReviewIndex];
     const totalDue = dueReviewCards.length;
     const progressPercent =
-      totalDue > 0
-        ? Math.round(((dueReviewIndex + 1) / totalDue) * 100)
-        : 0;
+      totalDue > 0 ? Math.round(((dueReviewIndex + 1) / totalDue) * 100) : 0;
 
     if (isDueCompleted) {
       const goodCount = dueStats.good + dueStats.easy;
@@ -1027,7 +1101,9 @@ export const DueReviewsPage: React.FC = () => {
               className="flex items-center gap-1.5 text-xs font-bold text-[#8e98b0] hover:text-white transition-colors cursor-pointer active:scale-95"
             >
               <X className="w-4 h-4" />
-              <span>{t("srs.dueReviewExitBtn", undefined, "Thoát Ôn Tập")}</span>
+              <span>
+                {t("srs.dueReviewExitBtn", undefined, "Thoát Ôn Tập")}
+              </span>
             </button>
 
             <div className="flex items-center gap-2">
@@ -1174,9 +1250,7 @@ export const DueReviewsPage: React.FC = () => {
                       className="p-3 sm:p-3.5 rounded-2xl bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/40 text-amber-300 font-bold text-xs transition-all active:scale-95 cursor-pointer flex flex-col items-center gap-1"
                     >
                       <span className="text-base">⚠️</span>
-                      <span>
-                        {t("modes.sm2Hard", undefined, "2. Khó nhớ")}
-                      </span>
+                      <span>{t("modes.sm2Hard", undefined, "2. Khó nhớ")}</span>
                       <span className="text-[10px] text-amber-400/80 font-normal">
                         {t("modes.sm2HardSub", undefined, "Ôn sớm")}
                       </span>
@@ -1189,9 +1263,7 @@ export const DueReviewsPage: React.FC = () => {
                       className="p-3 sm:p-3.5 rounded-2xl bg-blue-950/40 hover:bg-blue-900/60 border border-blue-500/40 text-blue-300 font-bold text-xs transition-all active:scale-95 cursor-pointer flex flex-col items-center gap-1"
                     >
                       <span className="text-base">👍</span>
-                      <span>
-                        {t("modes.sm2Good", undefined, "3. Nhớ tốt")}
-                      </span>
+                      <span>{t("modes.sm2Good", undefined, "3. Nhớ tốt")}</span>
                       <span className="text-[10px] text-blue-400/80 font-normal">
                         {t("modes.sm2GoodSub", undefined, "+1-6 ngày")}
                       </span>
@@ -1204,9 +1276,7 @@ export const DueReviewsPage: React.FC = () => {
                       className="p-3 sm:p-3.5 rounded-2xl bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-300 font-bold text-xs transition-all active:scale-95 cursor-pointer flex flex-col items-center gap-1"
                     >
                       <span className="text-base">⚡</span>
-                      <span>
-                        {t("modes.sm2Easy", undefined, "4. Rất dễ")}
-                      </span>
+                      <span>{t("modes.sm2Easy", undefined, "4. Rất dễ")}</span>
                       <span className="text-[10px] text-emerald-400/80 font-normal">
                         {t("modes.sm2EasySub", undefined, "Khoảng cách dài")}
                       </span>
@@ -1358,7 +1428,7 @@ export const DueReviewsPage: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div id="srs-due-section" className="space-y-4 scroll-mt-24">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -1379,7 +1449,7 @@ export const DueReviewsPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {dueReviews.map((card) => (
+                {paginatedDueReviews.map((card) => (
                   <div
                     key={card.id}
                     className="bg-[#1a1d36] border border-[#2e3856] hover:border-[#4257B2] rounded-2xl p-5 transition-all space-y-3 shadow-md group relative"
@@ -1442,6 +1512,22 @@ export const DueReviewsPage: React.FC = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Pagination for Due Reviews (Max 10 per page) */}
+              {totalDuePages > 1 && (
+                <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#2e3856]/60">
+                  <span className="text-xs text-[#8e98b0]">
+                    {t("common.page", undefined, "Trang")} {dueCurrentPage} /{" "}
+                    {totalDuePages} • {dueReviews.length}{" "}
+                    {t("sidebar.cards", undefined, "thẻ")}
+                  </span>
+                  <Pagination
+                    currentPage={dueCurrentPage}
+                    totalPages={totalDuePages}
+                    onPageChange={handleDuePageChange}
+                  />
+                </div>
+              )}
             </div>
           )}
         </>
@@ -1486,7 +1572,7 @@ export const DueReviewsPage: React.FC = () => {
               </Link>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div id="srs-mistakes-section" className="space-y-4 scroll-mt-24">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -1525,7 +1611,7 @@ export const DueReviewsPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {mistakeCards.map((card) => (
+                {paginatedMistakeCards.map((card) => (
                   <div
                     key={card.id}
                     className="bg-[#1a1d36] border border-[#2e3856] hover:border-[#4257B2] rounded-2xl p-5 transition-all space-y-3 shadow-md group relative"
@@ -1579,6 +1665,22 @@ export const DueReviewsPage: React.FC = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Pagination for Mistake Bank (Max 10 per page) */}
+              {totalMistakePages > 1 && (
+                <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#2e3856]/60">
+                  <span className="text-xs text-[#8e98b0]">
+                    {t("common.page", undefined, "Trang")} {mistakeCurrentPage}{" "}
+                    / {totalMistakePages} • {mistakeCards.length}{" "}
+                    {t("sidebar.cards", undefined, "thẻ")}
+                  </span>
+                  <Pagination
+                    currentPage={mistakeCurrentPage}
+                    totalPages={totalMistakePages}
+                    onPageChange={handleMistakePageChange}
+                  />
+                </div>
+              )}
             </div>
           )}
         </>

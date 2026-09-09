@@ -350,7 +350,9 @@ export const StudySetDetailPage: React.FC = () => {
 
   const cards = useMemo(() => currentSet?.cards || [], [currentSet?.cards]);
   const currentCard = cards[previewIndex];
-  const isOwner = Boolean(user && currentSet && user.id === currentSet.creatorId);
+  const isOwner = Boolean(
+    user && currentSet && user.id === currentSet.creatorId,
+  );
   const isStarred = Boolean(currentSet?.isStarredByCurrentUser);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 200);
@@ -760,7 +762,9 @@ export const StudySetDetailPage: React.FC = () => {
 
               <div>
                 <h3 className="text-base font-bold text-white group-hover:text-[#6366F1] transition-colors flex items-center gap-1.5">
-                  <span>{t("studySet.modeMore", undefined, "Chế Độ Khác")}</span>
+                  <span>
+                    {t("studySet.modeMore", undefined, "Chế Độ Khác")}
+                  </span>
                 </h3>
                 <p className="text-xs text-[#939bb4] line-clamp-2 mt-1 leading-snug">
                   {t(
@@ -812,7 +816,11 @@ export const StudySetDetailPage: React.FC = () => {
               </Button>
 
               <div className="flex items-center gap-2">
-                <AudioButton text={currentCard.term} size="md" showAccentToggle={true} />
+                <AudioButton
+                  text={currentCard.term}
+                  size="md"
+                  showAccentToggle={true}
+                />
                 <StarButton
                   isStarred={starredCardIds.has(currentCard.id)}
                   onToggle={() => handleToggleCardStar(currentCard.id)}
@@ -840,7 +848,10 @@ export const StudySetDetailPage: React.FC = () => {
       {/* 4. FULL TERMS LIST & LEADERBOARD GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Term List */}
-        <div id="study-set-terms-list" className="lg:col-span-2 space-y-4 scroll-mt-24">
+        <div
+          id="study-set-terms-list"
+          className="lg:col-span-2 space-y-4 scroll-mt-24"
+        >
           <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
             <div className="flex flex-col gap-1.5">
               <h2 className="text-xl font-bold text-white leading-tight">
@@ -890,8 +901,7 @@ export const StudySetDetailPage: React.FC = () => {
               </div>
             ) : (
               paginatedCards.map((card, idx) => {
-                const globalIdx =
-                  (termsPage - 1) * TERMS_PER_PAGE + idx + 1;
+                const globalIdx = (termsPage - 1) * TERMS_PER_PAGE + idx + 1;
                 return (
                   <div
                     key={card.id}
@@ -954,8 +964,14 @@ export const StudySetDetailPage: React.FC = () => {
                   const el = document.getElementById("study-set-terms-list");
                   if (el) {
                     const yOffset = -90;
-                    const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+                    const y =
+                      el.getBoundingClientRect().top +
+                      window.pageYOffset +
+                      yOffset;
+                    window.scrollTo({
+                      top: Math.max(0, y),
+                      behavior: "smooth",
+                    });
                   }
                 }}
               />

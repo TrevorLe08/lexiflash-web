@@ -180,7 +180,9 @@ export const MaintenancePage: React.FC<MaintenancePageProps> = ({
             <RefreshCw
               className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
             />
-            <span>{isRefreshing ? "Đang kiểm tra..." : "Kiểm tra lại hệ thống"}</span>
+            <span>
+              {isRefreshing ? "Đang kiểm tra..." : "Kiểm tra lại hệ thống"}
+            </span>
           </button>
         </div>
       </main>

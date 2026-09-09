@@ -80,10 +80,7 @@ export const FlashcardsMode: React.FC = () => {
     }
   }, [activeCards.length, currentIndex]);
 
-  const safeIndex = Math.min(
-    currentIndex,
-    Math.max(0, activeCards.length - 1),
-  );
+  const safeIndex = Math.min(currentIndex, Math.max(0, activeCards.length - 1));
   const currentCard = activeCards[safeIndex];
 
   const handleNext = useCallback(() => {
@@ -311,7 +308,13 @@ export const FlashcardsMode: React.FC = () => {
       {/* Unified Study Header Bar */}
       <div className="space-y-3">
         <StudyHeaderBar
-          current={activeCards.length > 0 ? (isCompleted ? activeCards.length : safeIndex + 1) : 0}
+          current={
+            activeCards.length > 0
+              ? isCompleted
+                ? activeCards.length
+                : safeIndex + 1
+              : 0
+          }
           total={activeCards.length}
           backUrl={`/sets/${id}`}
           percent={progressPercent}
@@ -339,14 +342,20 @@ export const FlashcardsMode: React.FC = () => {
                 setCurrentIndex(0);
                 setIsFlipped(false);
               }}
-              title={t("modes.starredOnlyBtn", undefined, "Filter starred only")}
+              title={t(
+                "modes.starredOnlyBtn",
+                undefined,
+                "Filter starred only",
+              )}
               className={`p-1.5 sm:p-2 rounded-xl border transition-colors cursor-pointer ${
                 starredOnly
                   ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
                   : "bg-[#121420] text-[#8e98b0] hover:text-white border-white/[0.08]"
               }`}
             >
-              <Star className={`w-4 h-4 ${starredOnly ? "fill-current" : ""}`} />
+              <Star
+                className={`w-4 h-4 ${starredOnly ? "fill-current" : ""}`}
+              />
             </button>
           </div>
         </div>

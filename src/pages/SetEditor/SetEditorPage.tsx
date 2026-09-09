@@ -10,7 +10,6 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { createStudySet } from "../../store/slices/studySetSlice";
 import { studySetApi } from "../../api/studySetApi";
-import { cardApi } from "../../api/cardApi";
 import { addToast } from "../../store/slices/uiSlice";
 import { Button } from "../../components/common/Button";
 import { Input } from "../../components/common/Input";
@@ -21,7 +20,6 @@ import {
   ArrowLeft,
   Plus,
   Trash2,
-  FileText,
   FileSpreadsheet,
   Sparkles,
   Save,
@@ -131,7 +129,9 @@ const CardEditorRow: React.FC<CardEditorRowProps> = React.memo(
                 "Enter definition...",
               )}
               value={card.definition}
-              onChange={(e) => onCardChange(index, "definition", e.target.value)}
+              onChange={(e) =>
+                onCardChange(index, "definition", e.target.value)
+              }
               className="w-full bg-[#0a092d] text-white text-sm placeholder-[#586380] border border-[#2e3856] rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#4257B2]"
             />
           </div>
@@ -304,15 +304,18 @@ export const SetEditorPage: React.FC = () => {
     [],
   );
 
-  const handleDeleteCardRow = useCallback((index: number) => {
-    setCards((prev) => {
-      if (prev.length <= 1) return prev;
-      const next = prev.filter((_, idx) => idx !== index);
-      const nextTotalPages = Math.max(1, Math.ceil(next.length / pageSize));
-      setEditorPage((curr) => Math.min(curr, nextTotalPages));
-      return next;
-    });
-  }, [pageSize]);
+  const handleDeleteCardRow = useCallback(
+    (index: number) => {
+      setCards((prev) => {
+        if (prev.length <= 1) return prev;
+        const next = prev.filter((_, idx) => idx !== index);
+        const nextTotalPages = Math.max(1, Math.ceil(next.length / pageSize));
+        setEditorPage((curr) => Math.min(curr, nextTotalPages));
+        return next;
+      });
+    },
+    [pageSize],
+  );
 
   const handleBulkImportCards = (
     imported: Array<{
@@ -881,7 +884,10 @@ export const SetEditorPage: React.FC = () => {
                 const el = document.getElementById("editor-cards-section");
                 if (el) {
                   const yOffset = -90;
-                  const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                  const y =
+                    el.getBoundingClientRect().top +
+                    window.pageYOffset +
+                    yOffset;
                   window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
                 }
               }}

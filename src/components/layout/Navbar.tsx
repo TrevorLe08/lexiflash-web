@@ -2,7 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { logoutUser } from "../../store/slices/authSlice";
-import { toggleSidebar, setSidebarOpen, toggleLanguage } from "../../store/slices/uiSlice";
+import {
+  toggleSidebar,
+  setSidebarOpen,
+  toggleLanguage,
+} from "../../store/slices/uiSlice";
 import { searchApi } from "../../api/searchApi";
 import { UnifiedSearchResult, UserRole } from "../../types";
 import { useTranslation } from "../../i18n";
@@ -30,11 +34,13 @@ import {
   LogIn,
   UserPlus,
   MoreVertical,
+  Settings,
 } from "lucide-react";
 import { Button } from "../common/Button";
 import { Logo } from "../common/Logo";
 import { StreakBadge } from "../common/StreakBadge";
 import { cn } from "../../utils/cn";
+import { SettingsModal } from "../settings/SettingsModal";
 import {
   getVoiceAccent,
   toggleVoiceAccent,
@@ -69,6 +75,7 @@ export const Navbar: React.FC = () => {
   const [createDropdownOpen, setCreateDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [guestDropdownOpen, setGuestDropdownOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [voiceAccent, setVoiceAccent] = useState<VoiceAccent>(getVoiceAccent());
 
   useEffect(() => {
@@ -830,6 +837,19 @@ export const Navbar: React.FC = () => {
                       </span>
                     </Link>
 
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setUserDropdownOpen(false);
+                        setIsSettingsModalOpen(true);
+                      }}
+                      className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-[#f1f3f9] hover:bg-white/[0.04] transition-colors cursor-pointer"
+                    >
+                      <Settings className="w-4 h-4 text-[#8e98b0]" />
+                      <span>{t("common.settings", undefined, "Cài đặt")}</span>
+                    </button>
+
                     {/* Language Switch inside Dropdown */}
                     <div className="border-t border-white/[0.08] my-1 py-1">
                       <button
@@ -872,8 +892,16 @@ export const Navbar: React.FC = () => {
                           <Volume2 className="w-4 h-4 text-[#4f5fd8]" />
                           <span>
                             {voiceAccent === "en-GB"
-                              ? t("nav.voiceAccentUk", undefined, "Giọng đọc: Anh - Anh 🇬🇧")
-                              : t("nav.voiceAccentUs", undefined, "Giọng đọc: Anh - Mỹ 🇺🇸")}
+                              ? t(
+                                  "nav.voiceAccentUk",
+                                  undefined,
+                                  "Giọng đọc: Anh - Anh 🇬🇧",
+                                )
+                              : t(
+                                  "nav.voiceAccentUs",
+                                  undefined,
+                                  "Giọng đọc: Anh - Mỹ 🇺🇸",
+                                )}
                           </span>
                         </div>
                         <span className="text-[10px] font-extrabold text-[#9cb1ff] bg-[#4f5fd8]/15 border border-[#4f5fd8]/30 px-1.5 py-0.5 rounded">
@@ -923,8 +951,16 @@ export const Navbar: React.FC = () => {
                   className="px-2.5 py-1.5 rounded-xl bg-[#121420] hover:bg-[#181c30] border border-white/[0.08] text-[#8e98b0] hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer text-xs font-bold"
                   title={
                     voiceAccent === "en-GB"
-                      ? t("nav.switchAccentUs", undefined, "Đổi sang giọng Anh - Mỹ 🇺🇸")
-                      : t("nav.switchAccentUk", undefined, "Đổi sang giọng Anh - Anh 🇬🇧")
+                      ? t(
+                          "nav.switchAccentUs",
+                          undefined,
+                          "Đổi sang giọng Anh - Mỹ 🇺🇸",
+                        )
+                      : t(
+                          "nav.switchAccentUk",
+                          undefined,
+                          "Đổi sang giọng Anh - Anh 🇬🇧",
+                        )
                   }
                   aria-label="Toggle Voice Accent"
                 >
@@ -977,7 +1013,9 @@ export const Navbar: React.FC = () => {
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[#9cb1ff] hover:bg-white/[0.04] transition-colors"
                       >
                         <UserPlus className="w-4 h-4 text-[#4f5fd8]" />
-                        <span>{t("nav.signup", undefined, "Đăng ký tài khoản")}</span>
+                        <span>
+                          {t("nav.signup", undefined, "Đăng ký tài khoản")}
+                        </span>
                       </Link>
 
                       {/* Language Toggle in Mobile Dropdown */}
@@ -995,7 +1033,11 @@ export const Navbar: React.FC = () => {
                             <span>
                               {language === "vi"
                                 ? t("nav.switchToEn", undefined, "English (US)")
-                                : t("nav.switchToVi", undefined, "Tiếng Việt (VN)")}
+                                : t(
+                                    "nav.switchToVi",
+                                    undefined,
+                                    "Tiếng Việt (VN)",
+                                  )}
                             </span>
                           </div>
                           <span className="text-[10px] font-extrabold text-[#9cb1ff] bg-[#4f5fd8]/15 border border-[#4f5fd8]/30 px-1.5 py-0.5 rounded">
@@ -1018,8 +1060,16 @@ export const Navbar: React.FC = () => {
                             <Volume2 className="w-4 h-4 text-[#4f5fd8]" />
                             <span>
                               {voiceAccent === "en-GB"
-                                ? t("nav.voiceAccentUk", undefined, "Giọng đọc: UK 🇬🇧")
-                                : t("nav.voiceAccentUs", undefined, "Giọng đọc: US 🇺🇸")}
+                                ? t(
+                                    "nav.voiceAccentUk",
+                                    undefined,
+                                    "Giọng đọc: UK 🇬🇧",
+                                  )
+                                : t(
+                                    "nav.voiceAccentUs",
+                                    undefined,
+                                    "Giọng đọc: US 🇺🇸",
+                                  )}
                             </span>
                           </div>
                           <span className="text-[10px] font-extrabold text-[#9cb1ff] bg-[#4f5fd8]/15 border border-[#4f5fd8]/30 px-1.5 py-0.5 rounded">
@@ -1065,6 +1115,12 @@ export const Navbar: React.FC = () => {
           </form>
         </div>
       )}
+
+      {/* Master Settings Modal (accessible from any page via avatar menu) */}
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+      />
     </header>
   );
 };

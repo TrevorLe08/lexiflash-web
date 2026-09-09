@@ -16,13 +16,19 @@ import {
   Wrench,
   Folder as FolderIcon,
 } from "lucide-react";
-import { BannerNotificationConfig, MaintenanceConfig } from "../../types/system.types";
+import {
+  BannerNotificationConfig,
+  MaintenanceConfig,
+} from "../../types/system.types";
 import { AdminOverviewTab } from "./components/AdminOverviewTab";
 import { AdminUsersTab } from "./components/AdminUsersTab";
 import { AdminSetsTab } from "./components/AdminSetsTab";
 import { AdminFoldersTab } from "./components/AdminFoldersTab";
 import { AdminGroupsTab } from "./components/AdminGroupsTab";
-import { AdminTopicsTab, DEFAULT_TOPICS_LIST } from "./components/AdminTopicsTab";
+import {
+  AdminTopicsTab,
+  DEFAULT_TOPICS_LIST,
+} from "./components/AdminTopicsTab";
 import { AdminBannerTab } from "./components/AdminBannerTab";
 import { AdminMaintenanceTab } from "./components/AdminMaintenanceTab";
 import { AdminModals } from "./components/AdminModals";
@@ -68,7 +74,8 @@ export const AdminDashboardPage: React.FC = () => {
   const [foldersPage, setFoldersPage] = useState(1);
   const [foldersTotalPages, setFoldersTotalPages] = useState(1);
   const [foldersSearch, setFoldersSearch] = useState("");
-  const [foldersFeaturedFilter, setFoldersFeaturedFilter] = useState<string>("ALL");
+  const [foldersFeaturedFilter, setFoldersFeaturedFilter] =
+    useState<string>("ALL");
   const [loadingFolders, setLoadingFolders] = useState(false);
 
   // Groups Tab State
@@ -84,20 +91,24 @@ export const AdminDashboardPage: React.FC = () => {
   const [savingTopics, setSavingTopics] = useState(false);
 
   // Banner Tab State
-  const [bannerConfig, setBannerConfig] = useState<BannerNotificationConfig | null>(null);
+  const [bannerConfig, setBannerConfig] =
+    useState<BannerNotificationConfig | null>(null);
   const [loadingBanner, setLoadingBanner] = useState(false);
   const [savingBanner, setSavingBanner] = useState(false);
 
   // Maintenance Tab State
-  const [maintenanceConfig, setMaintenanceConfig] = useState<MaintenanceConfig | null>(null);
+  const [maintenanceConfig, setMaintenanceConfig] =
+    useState<MaintenanceConfig | null>(null);
   const [loadingMaintenance, setLoadingMaintenance] = useState(false);
   const [savingMaintenance, setSavingMaintenance] = useState(false);
 
   // Debounced search states to prevent UI lag while typing
   const [debouncedUsersSearch, setDebouncedUsersSearch] = useState(usersSearch);
   const [debouncedSetsSearch, setDebouncedSetsSearch] = useState(setsSearch);
-  const [debouncedFoldersSearch, setDebouncedFoldersSearch] = useState(foldersSearch);
-  const [debouncedGroupsSearch, setDebouncedGroupsSearch] = useState(groupsSearch);
+  const [debouncedFoldersSearch, setDebouncedFoldersSearch] =
+    useState(foldersSearch);
+  const [debouncedGroupsSearch, setDebouncedGroupsSearch] =
+    useState(groupsSearch);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedUsersSearch(usersSearch), 500);
@@ -135,7 +146,9 @@ export const AdminDashboardPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const [tagModalOpen, setTagModalOpen] = useState(false);
-  const [selectedSetForTags, setSelectedSetForTags] = useState<any | null>(null);
+  const [selectedSetForTags, setSelectedSetForTags] = useState<any | null>(
+    null,
+  );
   const [savingTags, setSavingTags] = useState(false);
 
   // 1. Fetch Overview Stats
@@ -631,7 +644,10 @@ export const AdminDashboardPage: React.FC = () => {
     if (!selectedSetForTags) return;
     setSavingTags(true);
     try {
-      const res = await adminApi.updateSetTags(selectedSetForTags.id, tagsArray);
+      const res = await adminApi.updateSetTags(
+        selectedSetForTags.id,
+        tagsArray,
+      );
       setSetsList((prev) =>
         prev.map((s) =>
           s.id === selectedSetForTags.id
@@ -902,9 +918,14 @@ export const AdminDashboardPage: React.FC = () => {
           <Megaphone className="w-4 h-4" />
           <span>Top Banner Alert</span>
           {bannerConfig?.isEnabled ? (
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Active" />
+            <span
+              className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"
+              title="Active"
+            />
           ) : (
-            <span className="px-1.5 py-0.2 text-[10px] rounded-full bg-white/10 text-[#939bb4]">Off</span>
+            <span className="px-1.5 py-0.2 text-[10px] rounded-full bg-white/10 text-[#939bb4]">
+              Off
+            </span>
           )}
         </button>
 
@@ -920,9 +941,14 @@ export const AdminDashboardPage: React.FC = () => {
           <Wrench className="w-4 h-4" />
           <span>Bảo Trì Hệ Thống</span>
           {maintenanceConfig?.isActive ? (
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" title="Đang bảo trì" />
+            <span
+              className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"
+              title="Đang bảo trì"
+            />
           ) : (
-            <span className="px-1.5 py-0.2 text-[10px] rounded-full bg-white/10 text-[#939bb4]">Tắt</span>
+            <span className="px-1.5 py-0.2 text-[10px] rounded-full bg-white/10 text-[#939bb4]">
+              Tắt
+            </span>
           )}
         </button>
       </div>

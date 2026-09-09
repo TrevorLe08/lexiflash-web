@@ -148,7 +148,7 @@ export const en = {
     heroTitle: "Fast-Track Your English",
     heroHighlight: "With SM-2 Memory Science",
     heroDesc:
-      "Immerse yourself in 5 specialized study modes: 3D Flashcards, Adaptive Learn, Spell & Write, Timed Quiz Tests, and Tile Match Games.",
+      "Immerse yourself in 6 specialized study modes: 3D Flashcards, Spaced Repetition Learn, Spell & Write, Quiz Tests, Tile Match Games and Cloze Tests.",
     heroCreateBtn: "Create Study Set",
     heroAiBtn: "Generate with AI 🚀",
 
@@ -446,8 +446,10 @@ export const en = {
     adminUnlimited: "Admin: {count} words (Unlimited)",
     vipDiamondUnlimited: "VIP Diamond: {count} words (Unlimited)",
     vipGoldUnlimited: "VIP Gold: {count} words (Unlimited)",
-    freeLimitReachedToast: "You have reached the 300-word limit for Free accounts! Please upgrade to VIP for unlimited cards.",
-    bulkLimitExceededToast: "Cannot import all! Free accounts only have {remaining} slots remaining (300-card limit). Please upgrade to VIP!",
+    freeLimitReachedToast:
+      "You have reached the 300-word limit for Free accounts! Please upgrade to VIP for unlimited cards.",
+    bulkLimitExceededToast:
+      "Cannot import all! Free accounts only have {remaining} slots remaining (300-card limit). Please upgrade to VIP!",
     addCardBtn: "Add Flashcard",
     importBtn: "Import Excel file",
     generateAiBtn: "Generate with AI ✨",
@@ -638,8 +640,8 @@ export const en = {
     loadingCloze: "Loading Fill in the Blanks Mode...",
     clozePrompt: "Read the context sentence and fill in the missing word",
     clozeInputPlaceholder: "Type the missing word here...",
-    clozeMeaningPrefix: "The word meaning: \"",
-    clozeMeaningSuffix: "\" is ",
+    clozeMeaningPrefix: 'The word meaning: "',
+    clozeMeaningSuffix: '" is ',
     listenSentence: "Listen to sentence pronunciation",
     listenSentenceBtn: "Listen to sentence",
     clozeCorrectTerms: "Correctly Filled Terms ({count})",
@@ -707,7 +709,7 @@ export const en = {
     featGroups: "Study Groups (Create & Join)",
     featGroupsFree: "Max 5 total (max 2 created)",
     featGroupsVip: "Unlimited + Private Decks",
-    featModes: "5 Study Modes (Flashcard, Test, Match...)",
+    featModes: "6 Study Modes (Flashcard, Test, Match...)",
     featBadge: "Profile & Group Badge",
     featBadgeMonth: "VIP Gold Member Badge 👑",
     featBadgeYear: "VIP Diamond Elite Badge 💎",

@@ -382,174 +382,174 @@ export const HomePage: React.FC = () => {
       {/* 2. SIGNATURE HERO: Authentic Interactive Learning Deck (Guest only) */}
       {!isAuthenticated && !isSearchActive && (
         <div className="relative rounded-2xl bg-[#0f111a] border border-white/[0.08] p-5 sm:p-7 md:p-9 shadow-xs">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left Hero Thesis */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-white/[0.05] text-[#9cb1ff] border border-white/[0.1]">
-                <Zap className="w-3.5 h-3.5 text-[#4f5fd8]" />
-                Spaced Repetition (SRS)
-              </span>
-              <Badge variant="blue" size="sm">
-                Active Recall
-              </Badge>
-              <Badge variant="purple" size="sm">
-                CEFR & IELTS 3000
-              </Badge>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-[1.2]">
-              {t(
-                "home.heroTitle",
-                undefined,
-                "Active Recall & Spaced Repetition",
-              )}
-              <span className="block text-[#9cb1ff] font-semibold mt-1">
-                {t(
-                  "home.heroHighlight",
-                  undefined,
-                  "Engineered for Long-Term Memory",
-                )}
-              </span>
-            </h1>
-
-            <p className="text-[#8e98b0] text-sm sm:text-base leading-relaxed max-w-xl">
-              {t(
-                "home.heroDesc",
-                undefined,
-                "Review vocabulary right at the moment your brain is about to forget. 5 focused study modes designed for cognitive mastery.",
-              )}
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 w-full">
-              <Link to="/sets/create" className="w-full sm:w-auto">
-                <Button
-                  variant="primary"
-                  size="md"
-                  className="w-full sm:w-auto justify-center font-semibold"
-                  icon={<Plus className="w-4 h-4" />}
-                >
-                  {t("home.heroCreateBtn", undefined, "Create Study Set")}
-                </Button>
-              </Link>
-              <Link to="/ai-generator" className="w-full sm:w-auto">
-                <Button
-                  variant="secondary"
-                  size="md"
-                  className="w-full sm:w-auto justify-center font-medium"
-                  icon={<Sparkles className="w-4 h-4 text-[#9cb1ff]" />}
-                >
-                  {t("home.heroAiBtn", undefined, "Generate with AI")}
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Right Hero Signature: Interactive 3D Card Preview */}
-          <div className="lg:col-span-5 flex flex-col items-center">
-            <div className="w-full max-w-sm perspective-1000">
-              <div
-                onClick={() => setIsDemoFlipped(!isDemoFlipped)}
-                className={`relative w-full h-56 rounded-2xl cursor-pointer transition-transform duration-500 transform-style-3d shadow-xl ${
-                  isDemoFlipped ? "rotate-y-180" : ""
-                }`}
-              >
-                {/* Front Side */}
-                <div className="absolute inset-0 backface-hidden bg-[#121420] border border-white/[0.12] rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-lg">
-                  <div className="flex items-center justify-between text-xs text-[#8e98b0]">
-                    <span className="font-mono text-[11px] font-bold text-[#9cb1ff]">
-                      TERM PREVIEW
-                    </span>
-                    <span className="text-[11px] text-[#545d78] flex items-center gap-1">
-                      <kbd className="kbd-pill">Click</kbd> to flip
-                    </span>
-                  </div>
-
-                  <div className="text-center space-y-1">
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
-                      {currentDemoCard.term}
-                    </h3>
-                    <p className="text-sm font-mono text-[#9cb1ff]">
-                      {currentDemoCard.phonetic}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-3 border-t border-white/[0.08]">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        speakWord(currentDemoCard.term);
-                      }}
-                      className="p-1.5 rounded-lg bg-white/[0.06] text-[#8e98b0] hover:text-white hover:bg-white/[0.12] transition-colors"
-                      title={t(
-                        "home.demoPronounce",
-                        undefined,
-                        "Pronounce English word",
-                      )}
-                    >
-                      <Volume2 className="w-4 h-4" />
-                    </button>
-                    <span className="text-xs text-[#8e98b0] italic font-mono truncate max-w-[200px]">
-                      {currentDemoCard.hint}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Back Side */}
-                <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#161926] border border-emerald-500/30 rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-lg">
-                  <div className="flex items-center justify-between text-xs text-[#8e98b0]">
-                    <span className="font-mono text-[11px] font-bold text-emerald-400">
-                      RECALL DEFINITION
-                    </span>
-                    <span className="text-[11px] text-[#545d78] flex items-center gap-1">
-                      <kbd className="kbd-pill">Click</kbd> to flip back
-                    </span>
-                  </div>
-
-                  <div className="text-center space-y-1.5">
-                    <h3 className="text-base sm:text-lg font-bold text-white leading-snug">
-                      {currentDemoCard.definition}
-                    </h3>
-                    <p className="text-xs text-[#8e98b0] italic line-clamp-2">
-                      &quot;{currentDemoCard.example}&quot;
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-center pt-2 border-t border-white/[0.08] text-xs text-emerald-400 font-medium gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Active Recall Verified</span>
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left Hero Thesis */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-white/[0.05] text-[#9cb1ff] border border-white/[0.1]">
+                  <Zap className="w-3.5 h-3.5 text-[#4f5fd8]" />
+                  Spaced Repetition (SRS)
+                </span>
+                <Badge variant="blue" size="sm">
+                  Active Recall
+                </Badge>
+                <Badge variant="purple" size="sm">
+                  CEFR & IELTS 3000
+                </Badge>
               </div>
 
-              {/* Demo Controls */}
-              <div className="flex items-center justify-between w-full pt-3 px-1 text-xs text-[#8e98b0]">
-                <button
-                  type="button"
-                  onClick={() => setIsDemoFlipped(!isDemoFlipped)}
-                  className="hover:text-white font-medium flex items-center gap-1.5 cursor-pointer"
-                >
-                  <RotateCw className="w-3.5 h-3.5" />
-                  <span>{t("home.demoFlipBtn", undefined, "Flip Card")}</span>
-                </button>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-[1.2]">
+                {t(
+                  "home.heroTitle",
+                  undefined,
+                  "Active Recall & Spaced Repetition",
+                )}
+                <span className="block text-[#9cb1ff] font-semibold mt-1">
+                  {t(
+                    "home.heroHighlight",
+                    undefined,
+                    "Engineered for Long-Term Memory",
+                  )}
+                </span>
+              </h1>
 
-                <button
-                  type="button"
-                  onClick={handleNextDemo}
-                  className="text-[#9cb1ff] hover:text-white font-bold flex items-center gap-1 cursor-pointer font-mono"
+              <p className="text-[#8e98b0] text-sm sm:text-base leading-relaxed max-w-xl">
+                {t(
+                  "home.heroDesc",
+                  undefined,
+                  "Review vocabulary right at the moment your brain is about to forget. 5 focused study modes designed for cognitive mastery.",
+                )}
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 w-full">
+                <Link to="/sets/create" className="w-full sm:w-auto">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    className="w-full sm:w-auto justify-center font-semibold"
+                    icon={<Plus className="w-4 h-4" />}
+                  >
+                    {t("home.heroCreateBtn", undefined, "Create Study Set")}
+                  </Button>
+                </Link>
+                <Link to="/ai-generator" className="w-full sm:w-auto">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    className="w-full sm:w-auto justify-center font-medium"
+                    icon={<Sparkles className="w-4 h-4 text-[#9cb1ff]" />}
+                  >
+                    {t("home.heroAiBtn", undefined, "Generate with AI")}
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Right Hero Signature: Interactive 3D Card Preview */}
+            <div className="lg:col-span-5 flex flex-col items-center">
+              <div className="w-full max-w-sm perspective-1000">
+                <div
+                  onClick={() => setIsDemoFlipped(!isDemoFlipped)}
+                  className={`relative w-full h-56 rounded-2xl cursor-pointer transition-transform duration-500 transform-style-3d shadow-xl ${
+                    isDemoFlipped ? "rotate-y-180" : ""
+                  }`}
                 >
-                  <span>{t("home.demoNextBtn", undefined, "Next Term")}</span>
-                  <span>
-                    ({demoIndex + 1}/{demoCards.length}) →
-                  </span>
-                </button>
+                  {/* Front Side */}
+                  <div className="absolute inset-0 backface-hidden bg-[#121420] border border-white/[0.12] rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-lg">
+                    <div className="flex items-center justify-between text-xs text-[#8e98b0]">
+                      <span className="font-mono text-[11px] font-bold text-[#9cb1ff]">
+                        TERM PREVIEW
+                      </span>
+                      <span className="text-[11px] text-[#545d78] flex items-center gap-1">
+                        <kbd className="kbd-pill">Click</kbd> to flip
+                      </span>
+                    </div>
+
+                    <div className="text-center space-y-1">
+                      <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
+                        {currentDemoCard.term}
+                      </h3>
+                      <p className="text-sm font-mono text-[#9cb1ff]">
+                        {currentDemoCard.phonetic}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-white/[0.08]">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          speakWord(currentDemoCard.term);
+                        }}
+                        className="p-1.5 rounded-lg bg-white/[0.06] text-[#8e98b0] hover:text-white hover:bg-white/[0.12] transition-colors"
+                        title={t(
+                          "home.demoPronounce",
+                          undefined,
+                          "Pronounce English word",
+                        )}
+                      >
+                        <Volume2 className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs text-[#8e98b0] italic font-mono truncate max-w-[200px]">
+                        {currentDemoCard.hint}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Back Side */}
+                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#161926] border border-emerald-500/30 rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-lg">
+                    <div className="flex items-center justify-between text-xs text-[#8e98b0]">
+                      <span className="font-mono text-[11px] font-bold text-emerald-400">
+                        RECALL DEFINITION
+                      </span>
+                      <span className="text-[11px] text-[#545d78] flex items-center gap-1">
+                        <kbd className="kbd-pill">Click</kbd> to flip back
+                      </span>
+                    </div>
+
+                    <div className="text-center space-y-1.5">
+                      <h3 className="text-base sm:text-lg font-bold text-white leading-snug">
+                        {currentDemoCard.definition}
+                      </h3>
+                      <p className="text-xs text-[#8e98b0] italic line-clamp-2">
+                        &quot;{currentDemoCard.example}&quot;
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-center pt-2 border-t border-white/[0.08] text-xs text-emerald-400 font-medium gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Active Recall Verified</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Demo Controls */}
+                <div className="flex items-center justify-between w-full pt-3 px-1 text-xs text-[#8e98b0]">
+                  <button
+                    type="button"
+                    onClick={() => setIsDemoFlipped(!isDemoFlipped)}
+                    className="hover:text-white font-medium flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <RotateCw className="w-3.5 h-3.5" />
+                    <span>{t("home.demoFlipBtn", undefined, "Flip Card")}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleNextDemo}
+                    className="text-[#9cb1ff] hover:text-white font-bold flex items-center gap-1 cursor-pointer font-mono"
+                  >
+                    <span>{t("home.demoNextBtn", undefined, "Next Term")}</span>
+                    <span>
+                      ({demoIndex + 1}/{demoCards.length}) →
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
 
       {/* 2.2 ⭐ FEATURED FOLDERS (FOR LOGGED-IN USERS, STRICTLY HIDDEN IF NO FEATURED FOLDERS) */}
       {isAuthenticated && featuredFolders.length > 0 && !currentSearch && (
@@ -601,7 +601,10 @@ export const HomePage: React.FC = () => {
                         Featured
                       </span>
                       <span className="text-xs font-bold text-[#9cb1ff] bg-[#4f5fd8]/15 border border-[#4f5fd8]/30 px-2.5 py-0.5 rounded-md font-mono whitespace-nowrap shrink-0">
-                        {folder.setCount ?? folder.studySetIds?.length ?? folder.studySets?.length ?? 0}{" "}
+                        {folder.setCount ??
+                          folder.studySetIds?.length ??
+                          folder.studySets?.length ??
+                          0}{" "}
                         {t("common.studySets", undefined, "study sets")}
                       </span>
                     </div>
@@ -854,7 +857,8 @@ export const HomePage: React.FC = () => {
                 Kết quả tìm kiếm cho &quot;{currentSearch}&quot;
               </h2>
               <p className="text-xs sm:text-sm text-[#8e98b0]">
-                Tìm thấy {totalSearchMatches} kết quả phù hợp qua học phần, người dùng, nhóm học tập và thư mục.
+                Tìm thấy {totalSearchMatches} kết quả phù hợp qua học phần,
+                người dùng, nhóm học tập và thư mục.
               </p>
             </div>
 
@@ -885,7 +889,9 @@ export const HomePage: React.FC = () => {
                 Không tìm thấy kết quả nào cho &quot;{currentSearch}&quot;
               </h3>
               <p className="text-sm text-[#8e98b0] max-w-md mx-auto">
-                Không tìm thấy học phần, người dùng, nhóm học tập hoặc thư mục nào phù hợp với từ khóa này. Hãy thử kiểm tra lỗi chính tả hoặc tìm với từ khóa khác.
+                Không tìm thấy học phần, người dùng, nhóm học tập hoặc thư mục
+                nào phù hợp với từ khóa này. Hãy thử kiểm tra lỗi chính tả hoặc
+                tìm với từ khóa khác.
               </p>
               <div className="pt-2">
                 <Button
@@ -905,7 +911,10 @@ export const HomePage: React.FC = () => {
             <div className="space-y-10">
               {/* SECTION A: HỌC PHẦN (STUDY SETS) */}
               {searchSets.length > 0 && (
-                <div id="search-section-sets" className="space-y-4 scroll-mt-24">
+                <div
+                  id="search-section-sets"
+                  className="space-y-4 scroll-mt-24"
+                >
                   <div className="flex items-center justify-between pb-1 border-b border-white/[0.06]">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-xl bg-[#4f5fd8]/15 text-[#9cb1ff] flex items-center justify-center border border-[#4f5fd8]/30">
@@ -953,9 +962,13 @@ export const HomePage: React.FC = () => {
                               <div className="flex items-center gap-1 shrink-0">
                                 <button
                                   type="button"
-                                  onClick={(e) => handleToggleBookmark(set.id, e)}
+                                  onClick={(e) =>
+                                    handleToggleBookmark(set.id, e)
+                                  }
                                   title={
-                                    isBookmarked ? "Remove Bookmark" : "Bookmark set"
+                                    isBookmarked
+                                      ? "Remove Bookmark"
+                                      : "Bookmark set"
                                   }
                                   className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
                                     isBookmarked
@@ -990,7 +1003,10 @@ export const HomePage: React.FC = () => {
                               </div>
                             </div>
 
-                            <Link to={`/sets/${set.id}`} className="block group">
+                            <Link
+                              to={`/sets/${set.id}`}
+                              className="block group"
+                            >
                               <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-[#9cb1ff] transition-colors line-clamp-1">
                                 {set.title}
                               </h3>
@@ -1045,7 +1061,9 @@ export const HomePage: React.FC = () => {
                               to={`/sets/${set.id}`}
                               className="font-bold text-[#9cb1ff] group-hover:text-white flex items-center gap-1 hover:translate-x-0.5 transition-all"
                             >
-                              <span>{t("common.studyNow", undefined, "Study Now")}</span>
+                              <span>
+                                {t("common.studyNow", undefined, "Study Now")}
+                              </span>
                               <ArrowRight className="w-3.5 h-3.5" />
                             </Link>
                           </div>
@@ -1068,7 +1086,10 @@ export const HomePage: React.FC = () => {
 
               {/* SECTION B: NGƯỜI DÙNG (USERS) */}
               {searchUsers.length > 0 && (
-                <div id="search-section-users" className="space-y-4 scroll-mt-24">
+                <div
+                  id="search-section-users"
+                  className="space-y-4 scroll-mt-24"
+                >
                   <div className="flex items-center justify-between pb-1 border-b border-white/[0.06]">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-300 flex items-center justify-center border border-purple-500/30">
@@ -1122,7 +1143,9 @@ export const HomePage: React.FC = () => {
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-[#8e98b0] truncate">@{u.username}</p>
+                            <p className="text-xs text-[#8e98b0] truncate">
+                              @{u.username}
+                            </p>
                             {u.bio && (
                               <p className="text-[11px] text-[#545d78] truncate mt-0.5 max-w-[170px]">
                                 {u.bio}
@@ -1138,7 +1161,9 @@ export const HomePage: React.FC = () => {
                               <span>{u.streakCount}</span>
                             </span>
                           ) : (
-                            <span className="text-[11px] text-[#545d78]">0 streak</span>
+                            <span className="text-[11px] text-[#545d78]">
+                              0 streak
+                            </span>
                           )}
                           <span className="text-[11px] font-semibold text-purple-300 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
                             Xem <ArrowRight className="w-3 h-3" />
@@ -1162,7 +1187,10 @@ export const HomePage: React.FC = () => {
 
               {/* SECTION C: NHÓM HỌC TẬP (STUDY GROUPS) */}
               {searchClasses.length > 0 && (
-                <div id="search-section-classes" className="space-y-4 scroll-mt-24">
+                <div
+                  id="search-section-classes"
+                  className="space-y-4 scroll-mt-24"
+                >
                   <div className="flex items-center justify-between pb-1 border-b border-white/[0.06]">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center border border-emerald-500/30">
@@ -1176,7 +1204,8 @@ export const HomePage: React.FC = () => {
                           </span>
                           {totalSearchClassesPages > 1 && (
                             <span className="text-xs font-medium text-[#8e98b0]">
-                              • Trang {searchClassesPage}/{totalSearchClassesPages}
+                              • Trang {searchClassesPage}/
+                              {totalSearchClassesPages}
                             </span>
                           )}
                         </h3>
@@ -1197,7 +1226,8 @@ export const HomePage: React.FC = () => {
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md font-mono">
-                              {cls.memberCount || cls.members?.length || 0} thành viên
+                              {cls.memberCount || cls.members?.length || 0}{" "}
+                              thành viên
                             </span>
                             {cls.schoolName && (
                               <span className="text-[11px] text-[#8e98b0] truncate max-w-[130px]">
@@ -1217,7 +1247,8 @@ export const HomePage: React.FC = () => {
 
                         <div className="flex items-center justify-between pt-3 border-t border-white/[0.08] text-xs text-[#8e98b0]">
                           <span className="font-mono text-[11px]">
-                            {cls.setCount || cls.studySetIds?.length || 0} học phần
+                            {cls.setCount || cls.studySetIds?.length || 0} học
+                            phần
                           </span>
                           <span className="font-semibold text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1">
                             Vào nhóm <ArrowRight className="w-3.5 h-3.5" />
@@ -1241,7 +1272,10 @@ export const HomePage: React.FC = () => {
 
               {/* SECTION D: THƯ MỤC (FOLDERS) */}
               {searchFolders.length > 0 && (
-                <div id="search-section-folders" className="space-y-4 scroll-mt-24">
+                <div
+                  id="search-section-folders"
+                  className="space-y-4 scroll-mt-24"
+                >
                   <div className="flex items-center justify-between pb-1 border-b border-white/[0.06]">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-300 flex items-center justify-center border border-amber-500/30">
@@ -1255,7 +1289,8 @@ export const HomePage: React.FC = () => {
                           </span>
                           {totalSearchFoldersPages > 1 && (
                             <span className="text-xs font-medium text-[#8e98b0]">
-                              • Trang {searchFoldersPage}/{totalSearchFoldersPages}
+                              • Trang {searchFoldersPage}/
+                              {totalSearchFoldersPages}
                             </span>
                           )}
                         </h3>
@@ -1276,7 +1311,8 @@ export const HomePage: React.FC = () => {
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-[11px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-md font-mono">
-                              {f.setCount || f.studySetIds?.length || 0} học phần
+                              {f.setCount || f.studySetIds?.length || 0} học
+                              phần
                             </span>
                           </div>
                           <h4 className="text-base font-bold text-white group-hover:text-amber-300 transition-colors line-clamp-1">
@@ -1395,7 +1431,9 @@ export const HomePage: React.FC = () => {
                 {popularTags.map((tag) => (
                   <button
                     key={tag}
-                    onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                    onClick={() =>
+                      setSelectedTag(selectedTag === tag ? null : tag)
+                    }
                     className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                       selectedTag === tag
                         ? "bg-[#4f5fd8]/20 text-[#9cb1ff] border border-[#4f5fd8]/40"
@@ -1578,7 +1616,9 @@ export const HomePage: React.FC = () => {
                         to={`/sets/${set.id}`}
                         className="font-bold text-[#9cb1ff] group-hover:text-white flex items-center gap-1 hover:translate-x-0.5 transition-all"
                       >
-                        <span>{t("common.studyNow", undefined, "Study Now")}</span>
+                        <span>
+                          {t("common.studyNow", undefined, "Study Now")}
+                        </span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>

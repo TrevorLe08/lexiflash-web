@@ -283,11 +283,7 @@ export const AdminFoldersTab: React.FC<AdminFoldersTabProps> = React.memo(
         {/* Folders Table */}
         <div className="bg-[#1a1d36] border border-[#2e3856] rounded-2xl overflow-hidden shadow-xl">
           {loadingFolders ? (
-            <Spinner
-              size="lg"
-              label="Loading folders..."
-              className="py-20"
-            />
+            <Spinner size="lg" label="Loading folders..." className="py-20" />
           ) : foldersList.length === 0 ? (
             <div className="text-center py-16 space-y-2">
               <FolderIcon className="w-10 h-10 text-[#586380] mx-auto" />

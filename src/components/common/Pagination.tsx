@@ -11,8 +11,7 @@ interface PaginationProps {
 }
 
 type PageItem =
-  | { type: "page"; page: number }
-  | { type: "dots"; position: "left" | "right" };
+  { type: "page"; page: number } | { type: "dots"; position: "left" | "right" };
 
 export const Pagination: React.FC<PaginationProps> = ({
   currentPage,
@@ -221,7 +220,9 @@ export const Pagination: React.FC<PaginationProps> = ({
       {/* Next button */}
       <button
         type="button"
-        onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+        onClick={() =>
+          currentPage < totalPages && onPageChange(currentPage + 1)
+        }
         disabled={currentPage >= totalPages}
         className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:bg-white/10 disabled:text-white/20 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors cursor-pointer"
         aria-label="Trang sau"

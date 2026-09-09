@@ -217,7 +217,7 @@ export const VIPPricingPage: React.FC = () => {
                   {t(
                     "vip.featModes",
                     undefined,
-                    "5 Chế độ học (Flashcard, Test, Match...)",
+                    "6 Chế độ học (Flashcard, Test, Match...)",
                   )}
                 </span>
               </div>
@@ -334,9 +334,7 @@ export const VIPPricingPage: React.FC = () => {
                 <Bot className="w-4 h-4 text-indigo-400 shrink-0" />
                 <span>
                   AI Generator:{" "}
-                  <strong className="text-amber-300">
-                    20 lượt / ngày
-                  </strong>
+                  <strong className="text-amber-300">20 lượt / ngày</strong>
                 </span>
               </div>
               <div className="flex items-center gap-2.5 text-white font-medium">
@@ -354,9 +352,7 @@ export const VIPPricingPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2.5 text-white font-medium">
                 <Crown className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>
-                  Huy hiệu VIP Gold Member trên Profile & Nhóm 👑
-                </span>
+                <span>Huy hiệu VIP Gold Member trên Profile & Nhóm 👑</span>
               </div>
               <div className="flex items-center gap-2.5 text-[#d9dde8]">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -497,9 +493,7 @@ export const VIPPricingPage: React.FC = () => {
                 <Bot className="w-4 h-4 text-cyan-300 shrink-0" />
                 <span>
                   AI Generator:{" "}
-                  <strong className="text-cyan-300">
-                    40 lượt / ngày
-                  </strong>{" "}
+                  <strong className="text-cyan-300">40 lượt / ngày</strong>{" "}
                   <span className="text-[10px] text-cyan-300 font-normal">
                     (x2 quota)
                   </span>
@@ -523,9 +517,7 @@ export const VIPPricingPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2.5 text-white font-bold">
                 <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
-                <span>
-                  Huy hiệu VIP Diamond Elite đặc biệt 💎
-                </span>
+                <span>Huy hiệu VIP Diamond Elite đặc biệt 💎</span>
               </div>
               <div className="flex items-center gap-2.5 text-white font-bold">
                 <Zap className="w-4 h-4 text-cyan-300 shrink-0" />
@@ -739,7 +731,7 @@ export const VIPPricingPage: React.FC = () => {
                   {t(
                     "vip.featModes",
                     undefined,
-                    "5 Chế độ học (Flashcard, Test, Match...)",
+                    "6 Chế độ học (Flashcard, Test, Match...)",
                   )}
                 </td>
                 <td className="p-3.5 text-center font-bold text-emerald-400">

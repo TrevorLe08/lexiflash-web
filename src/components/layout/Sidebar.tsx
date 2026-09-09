@@ -73,7 +73,11 @@ export const Sidebar: React.FC = () => {
       to: "/reviews",
       label: t("sidebar.dueReviews", undefined, "SRS Reviews & Mistakes"),
       icon: BookOpen,
-      badge: dueReviews.length ? (dueReviews.length > 99 ? "99+" : dueReviews.length) : null,
+      badge: dueReviews.length
+        ? dueReviews.length > 99
+          ? "99+"
+          : dueReviews.length
+        : null,
     },
     {
       to: "/ai-generator",
@@ -167,14 +171,22 @@ export const Sidebar: React.FC = () => {
                 {user.role === UserRole.ADMIN ? (
                   <span
                     className="absolute -top-1 -right-1 bg-purple-600 text-white p-0.5 rounded-full ring-2 ring-[#121420] shadow-xs"
-                    title={t("sidebar.adminBadge", undefined, "Quản trị viên (ADMIN)")}
+                    title={t(
+                      "sidebar.adminBadge",
+                      undefined,
+                      "Quản trị viên (ADMIN)",
+                    )}
                   >
                     <ShieldCheck className="w-2.5 h-2.5" />
                   </span>
                 ) : isDiamondUser ? (
                   <span
                     className="absolute -top-1 -right-1 bg-cyan-400 text-black p-0.5 rounded-full ring-2 ring-[#121420] shadow-xs animate-pulse"
-                    title={t("sidebar.diamondBadge", undefined, "VIP Diamond Elite")}
+                    title={t(
+                      "sidebar.diamondBadge",
+                      undefined,
+                      "VIP Diamond Elite",
+                    )}
                   >
                     <Sparkles className="w-2.5 h-2.5 fill-current" />
                   </span>
@@ -218,10 +230,20 @@ export const Sidebar: React.FC = () => {
             <div className="p-3 mb-3 bg-[#121420] border border-white/[0.08] rounded-2xl space-y-2.5">
               <div className="flex items-center gap-2 text-[#9cb1ff] text-xs font-bold">
                 <Sparkles className="w-4 h-4 text-[#4f5fd8]" />
-                <span>{t("sidebar.guestWelcome", undefined, "Học tập cùng LexiFlash")}</span>
+                <span>
+                  {t(
+                    "sidebar.guestWelcome",
+                    undefined,
+                    "Học tập cùng LexiFlash",
+                  )}
+                </span>
               </div>
               <p className="text-[11px] text-[#8e98b0] leading-relaxed">
-                {t("sidebar.guestPrompt", undefined, "Đăng nhập để lưu tiến độ ôn tập và đồng bộ thẻ ghi nhớ.")}
+                {t(
+                  "sidebar.guestPrompt",
+                  undefined,
+                  "Đăng nhập để lưu tiến độ ôn tập và đồng bộ thẻ ghi nhớ.",
+                )}
               </p>
               <div className="grid grid-cols-2 gap-2 pt-0.5">
                 <Link
@@ -320,7 +342,9 @@ export const Sidebar: React.FC = () => {
               title="Toggle Language"
             >
               <Globe className="w-3.5 h-3.5 text-[#4f5fd8]" />
-              <span className="text-[11px] font-semibold">{language === "vi" ? "Tiếng Việt" : "English"}</span>
+              <span className="text-[11px] font-semibold">
+                {language === "vi" ? "Tiếng Việt" : "English"}
+              </span>
             </button>
             <button
               type="button"
@@ -329,7 +353,9 @@ export const Sidebar: React.FC = () => {
               title="Toggle Voice Accent"
             >
               <Volume2 className="w-3.5 h-3.5 text-[#4f5fd8]" />
-              <span className="text-[11px] font-semibold">{voiceAccent === "en-GB" ? "Giọng UK 🇬🇧" : "Giọng US 🇺🇸"}</span>
+              <span className="text-[11px] font-semibold">
+                {voiceAccent === "en-GB" ? "Giọng UK 🇬🇧" : "Giọng US 🇺🇸"}
+              </span>
             </button>
           </div>
         </div>

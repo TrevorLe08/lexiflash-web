@@ -52,10 +52,16 @@ export const StudyHeaderBar: React.FC<StudyHeaderBarProps> = ({
   );
 
   return (
-    <div className={`flex items-center gap-3 sm:gap-5 w-full select-none ${className}`}>
+    <div
+      className={`flex items-center gap-3 sm:gap-5 w-full select-none ${className}`}
+    >
       {/* Exit Button */}
       {backUrl ? (
-        <Link to={backUrl} onClick={onClose} className="shrink-0 flex items-center">
+        <Link
+          to={backUrl}
+          onClick={onClose}
+          className="shrink-0 flex items-center"
+        >
           {closeIcon}
         </Link>
       ) : (

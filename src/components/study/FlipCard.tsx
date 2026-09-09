@@ -72,7 +72,7 @@ export const FlipCard: React.FC<FlipCardProps> = ({
                   ? "text-xl sm:text-2xl md:text-3xl"
                   : card.term.length > 20
                     ? "text-2xl sm:text-3xl md:text-4xl"
-                    : "text-3xl sm:text-4xl md:text-5xl"
+                    : "text-3xl sm:text-4xl md:text-5xl",
               )}
             >
               {card.term}
@@ -125,7 +125,7 @@ export const FlipCard: React.FC<FlipCardProps> = ({
                   ? "text-base sm:text-lg md:text-xl"
                   : card.definition.length > 35
                     ? "text-lg sm:text-xl md:text-2xl"
-                    : "text-2xl sm:text-3xl md:text-4xl"
+                    : "text-2xl sm:text-3xl md:text-4xl",
               )}
             >
               {card.definition}

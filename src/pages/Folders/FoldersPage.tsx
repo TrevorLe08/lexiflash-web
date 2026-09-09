@@ -339,11 +339,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
 
         <div className="space-y-1.5 text-left">
           <label className="block text-xs font-semibold uppercase tracking-wider text-[#939bb4]">
-            {t(
-              "folders.folderDescLabel",
-              undefined,
-              "Description (optional)",
-            )}
+            {t("folders.folderDescLabel", undefined, "Description (optional)")}
           </label>
           <textarea
             rows={3}
@@ -358,11 +354,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onClose}
-          >
+          <Button type="button" variant="ghost" onClick={onClose}>
             {t("common.cancel", undefined, "Cancel")}
           </Button>
           <Button type="submit" variant="primary" loading={isCreating}>

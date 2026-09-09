@@ -8,7 +8,10 @@ import {
   ClassGroup,
   Folder,
 } from "../types";
-import { BannerNotificationConfig, MaintenanceConfig } from "../types/system.types";
+import {
+  BannerNotificationConfig,
+  MaintenanceConfig,
+} from "../types/system.types";
 
 export interface AdminOverviewStats {
   users: {
@@ -136,7 +139,9 @@ export const adminApi = {
     folderId: string,
     isFeatured: boolean,
   ): Promise<ApiResponse<Folder>> => {
-    return axiosClient.patch(`/admin/folders/${folderId}/featured`, { isFeatured });
+    return axiosClient.patch(`/admin/folders/${folderId}/featured`, {
+      isFeatured,
+    });
   },
 
   deleteFolder: (folderId: string): Promise<ApiResponse<void>> => {
@@ -171,7 +176,9 @@ export const adminApi = {
     return axiosClient.put("/admin/banner", data);
   },
 
-  getMaintenance: (): Promise<ApiResponse<{ maintenance: MaintenanceConfig }>> => {
+  getMaintenance: (): Promise<
+    ApiResponse<{ maintenance: MaintenanceConfig }>
+  > => {
     return axiosClient.get("/admin/maintenance");
   },
 

@@ -12,7 +12,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     | "gradient"
     | "emerald"
     | "rose"
-    | "cyan";
+    | "cyan"
+    | "teal"
+    | "purple";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
   icon?: React.ReactNode;
@@ -120,6 +122,14 @@ export const Button: React.FC<ButtonProps> = ({
     cyan: isPressed
       ? "bg-[#0c2a38] border-cyan-400 text-cyan-200 shadow-[0_1px_0_0_#0891b2] translate-y-[3px]"
       : "bg-[#08202d] hover:bg-[#0c2a38] border-cyan-500/60 hover:border-cyan-400 text-cyan-300 hover:text-cyan-200 shadow-[0_4px_0_0_#0891b2] translate-y-0 active:translate-y-[3px] active:shadow-[0_1px_0_0_#0891b2]",
+
+    teal: isPressed
+      ? "bg-teal-500 border-teal-300 text-white shadow-[0_1px_0_0_#115e59] translate-y-[3px]"
+      : "bg-teal-600 hover:bg-teal-500 border-teal-300 text-white shadow-[0_4px_0_0_#115e59] translate-y-0 active:translate-y-[3px] active:shadow-[0_1px_0_0_#115e59]",
+
+    purple: isPressed
+      ? "bg-purple-500 border-purple-300 text-white shadow-[0_1px_0_0_#6b21a8] translate-y-[3px]"
+      : "bg-purple-600 hover:bg-purple-500 border-purple-300 text-white shadow-[0_4px_0_0_#6b21a8] translate-y-0 active:translate-y-[3px] active:shadow-[0_1px_0_0_#6b21a8]",
   };
 
   return (

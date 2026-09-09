@@ -51,6 +51,21 @@ export const authApi = {
     return axiosClient.get(`/users/${encodeURIComponent(userIdOrUsername)}`);
   },
 
+  getAvatarSignature: (): Promise<
+    ApiResponse<{
+      signature: string;
+      timestamp: number;
+      folder: string;
+      publicId: string;
+      apiKey: string;
+      cloudName: string;
+      transformation: string;
+      allowedFormats: string;
+    }>
+  > => {
+    return axiosClient.get("/users/avatar-signature");
+  },
+
   updateProfile: (data: {
     name?: string;
     avatarUrl?: string;

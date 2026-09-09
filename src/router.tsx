@@ -1,7 +1,56 @@
-import { lazy } from "react";
-import { createBrowserRouter } from "react-router-dom";
+/* eslint-disable react-refresh/only-export-components */
+import React, { lazy } from "react";
+import {
+  createBrowserRouter,
+  useRouteError,
+  isRouteErrorResponse,
+  Link,
+} from "react-router-dom";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import { AppLayout } from "./components/layout/AppLayout";
 import { AdminRoute } from "./components/auth/AdminRoute";
+
+function RouteErrorBoundary() {
+  const error = useRouteError();
+  let errorMessage = "Đã xảy ra sự cố không mong muốn khi tải trang.";
+
+  if (isRouteErrorResponse(error)) {
+    errorMessage = `${error.status} ${error.statusText}: ${String(error.data || "Không thể tải tài nguyên")}`;
+  } else if (error instanceof Error) {
+    errorMessage = error.message;
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+      <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-8 text-center">
+        <div className="w-16 h-16 bg-red-100 dark:bg-red-950/50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400">
+          <AlertTriangle className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-bold mb-2">Đã xảy ra sự cố</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 break-words">
+          {errorMessage}
+        </p>
+        <div className="flex gap-3 justify-center">
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Tải lại trang
+          </button>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition"
+          >
+            <Home className="w-4 h-4" />
+            Về trang chủ
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Lazy-loaded page components for optimal bundle splitting and performance
 const HomePage = lazy(() =>
@@ -16,7 +65,9 @@ const AdminLoginPage = lazy(() =>
   })),
 );
 const RegisterPage = lazy(() =>
-  import("./pages/Auth/RegisterPage").then((m) => ({ default: m.RegisterPage })),
+  import("./pages/Auth/RegisterPage").then((m) => ({
+    default: m.RegisterPage,
+  })),
 );
 const ForgotPasswordPage = lazy(() =>
   import("./pages/Auth/ForgotPasswordPage").then((m) => ({
@@ -138,6 +189,7 @@ export const router = createBrowserRouter([
   {
     path: "/",
     Component: AppLayout,
+    errorElement: <RouteErrorBoundary />,
     children: [
       { index: true, Component: HomePage },
       { path: "login", Component: LoginPage },

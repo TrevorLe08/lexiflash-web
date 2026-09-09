@@ -88,8 +88,8 @@ const STUDY_MODES_CONFIG = [
 
 const CIRCUMFERENCE = 2 * Math.PI * 56; // Radius = 56, circumference ≈ 351.86
 
-export const StudyModesDonutSection: React.FC<StudyModesDonutSectionProps> = React.memo(
-  ({ modeDistribution = {}, totalSessions = 0 }) => {
+export const StudyModesDonutSection: React.FC<StudyModesDonutSectionProps> =
+  React.memo(({ modeDistribution = {}, totalSessions = 0 }) => {
     const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
     // Calculate arc slices
@@ -144,7 +144,8 @@ export const StudyModesDonutSection: React.FC<StudyModesDonutSectionProps> = Rea
               Study Modes Activity Distribution
             </h3>
             <p className="text-xs text-[#939bb4]">
-              Interactive breakdown of student sessions across all 6 learning modalities
+              Interactive breakdown of student sessions across all 6 learning
+              modalities
             </p>
           </div>
           <span className="text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20">
@@ -311,8 +312,7 @@ export const StudyModesDonutSection: React.FC<StudyModesDonutSectionProps> = Rea
         </div>
       </div>
     );
-  },
-);
+  });
 
 // ==========================================
 // Admin Overview Tab Component
@@ -409,7 +409,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = React.memo(
                 {stats.content.totalStudySets}
               </div>
               <p className="text-[11px] text-[#939bb4] mt-1">
-                {stats.content.publicSets} Public • {stats.content.privateSets} Private
+                {stats.content.publicSets} Public • {stats.content.privateSets}{" "}
+                Private
               </p>
             </div>
           </div>
@@ -434,7 +435,9 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = React.memo(
               <p className="text-[11px] text-[#939bb4] mt-1">
                 Average ~
                 {stats.content.totalStudySets > 0
-                  ? Math.round(stats.content.totalCards / stats.content.totalStudySets)
+                  ? Math.round(
+                      stats.content.totalCards / stats.content.totalStudySets,
+                    )
                   : 0}{" "}
                 cards/set
               </p>
@@ -476,9 +479,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = React.memo(
           {/* Recent Registrations Quick Card */}
           <div className="bg-[#1a1d36] border border-[#2e3856] rounded-3xl p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-white">
-                Recent Signups
-              </h3>
+              <h3 className="text-base font-bold text-white">Recent Signups</h3>
               <button
                 type="button"
                 onClick={onViewAllUsers}

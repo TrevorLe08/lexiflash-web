@@ -15,7 +15,11 @@ export const ForgotPasswordPage: React.FC = () => {
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const { register, handleSubmit: handleFormSubmit, reset } = useForm<{
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    reset,
+  } = useForm<{
     email: string;
   }>({
     defaultValues: { email: "" },
@@ -78,8 +82,8 @@ export const ForgotPasswordPage: React.FC = () => {
               </p>
               <div className="bg-[#0f1225] border border-[#2e3856] rounded-xl p-3.5 text-xs text-[#f59e0b] text-left mt-3">
                 ⚠️ <strong>Lưu ý:</strong> Liên kết có hiệu lực trong 15 phút.
-                Nếu không thấy email trong Hộp thư đến, vui lòng kiểm tra thư mục{" "}
-                <strong>Spam (Thư rác)</strong>.
+                Nếu không thấy email trong Hộp thư đến, vui lòng kiểm tra thư
+                mục <strong>Spam (Thư rác)</strong>.
               </div>
             </div>
 
@@ -119,7 +123,9 @@ export const ForgotPasswordPage: React.FC = () => {
               icon={<Mail className="w-4 h-4" />}
             />
 
-            {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
+            {error && (
+              <p className="text-xs text-red-400 font-medium">{error}</p>
+            )}
 
             <Button
               type="submit"

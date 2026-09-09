@@ -14,7 +14,9 @@ interface AuthState {
 }
 
 // Helper to safely parse and validate JWT payload
-export function parseJwt(token: string): { userId?: string; role?: string; exp?: number } | null {
+export function parseJwt(
+  token: string,
+): { userId?: string; role?: string; exp?: number } | null {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return null;
@@ -24,7 +26,7 @@ export function parseJwt(token: string): { userId?: string; role?: string; exp?:
       atob(base64)
         .split("")
         .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
+        .join(""),
     );
     return JSON.parse(jsonPayload);
   } catch {

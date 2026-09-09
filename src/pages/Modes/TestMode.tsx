@@ -73,7 +73,11 @@ export const TestMode: React.FC = () => {
       const count = currentSet.cards.length;
       setQuestionCount((prev) => {
         const next =
-          prev > count ? count : prev === 10 ? Math.min(10, Math.max(1, count)) : prev;
+          prev > count
+            ? count
+            : prev === 10
+              ? Math.min(10, Math.max(1, count))
+              : prev;
         setCountInput(String(next));
         return next;
       });
@@ -96,7 +100,10 @@ export const TestMode: React.FC = () => {
   const handleStartTest = useCallback(async () => {
     if (!id || !isAuthenticated) return;
     const finalCount = countInput
-      ? Math.min(totalCards, Math.max(1, parseInt(countInput, 10) || questionCount))
+      ? Math.min(
+          totalCards,
+          Math.max(1, parseInt(countInput, 10) || questionCount),
+        )
       : questionCount;
     setQuestionCount(finalCount);
     setCountInput(String(finalCount));
@@ -122,7 +129,14 @@ export const TestMode: React.FC = () => {
     } finally {
       setLoadingTest(false);
     }
-  }, [id, isAuthenticated, questionCount, questionTypes, countInput, totalCards]);
+  }, [
+    id,
+    isAuthenticated,
+    questionCount,
+    questionTypes,
+    countInput,
+    totalCards,
+  ]);
 
   const handleRestart = () => {
     setUserAnswers({});
@@ -329,7 +343,9 @@ export const TestMode: React.FC = () => {
     return (
       <div className="max-w-md mx-auto py-16 text-center space-y-4 animate-fade-in">
         <FileCheck2 className="w-12 h-12 text-[#6366F1] mx-auto opacity-50" />
-        <h2 className="text-xl font-bold text-white">Học phần chưa có từ vựng</h2>
+        <h2 className="text-xl font-bold text-white">
+          Học phần chưa có từ vựng
+        </h2>
         <p className="text-sm text-[#939bb4]">
           Vui lòng thêm thẻ từ vựng vào học phần trước khi làm bài thi.
         </p>
@@ -614,9 +630,7 @@ export const TestMode: React.FC = () => {
             size="lg"
             className="w-full flex items-center justify-center gap-2 text-sm sm:text-base font-bold py-3.5 shadow-lg shadow-indigo-600/30 whitespace-nowrap"
             disabled={
-              questionTypes.length === 0 ||
-              questionCount < 1 ||
-              loadingTest
+              questionTypes.length === 0 || questionCount < 1 || loadingTest
             }
             loading={loadingTest}
             onClick={handleStartTest}
@@ -680,9 +694,7 @@ export const TestMode: React.FC = () => {
                   )
                 : Math.min(
                     100,
-                    Math.round(
-                      (answeredCount / testData.totalQuestions) * 100,
-                    ),
+                    Math.round((answeredCount / testData.totalQuestions) * 100),
                   )
           }
           onSettings={() => setIsConfiguring(true)}
@@ -851,7 +863,11 @@ export const TestMode: React.FC = () => {
                 onClick={() => setIsConfiguring(true)}
                 icon={<SlidersHorizontal className="w-4 h-4" />}
               >
-                {t("modes.customNewSession", undefined, "Tùy chỉnh bài thi mới")}
+                {t(
+                  "modes.customNewSession",
+                  undefined,
+                  "Tùy chỉnh bài thi mới",
+                )}
               </Button>
 
               <Link to={`/sets/${id}`}>
@@ -867,7 +883,13 @@ export const TestMode: React.FC = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                 <FileCheck2 className="w-5 h-5 text-indigo-400" />
-                <span>{t("modes.reviewAnswers", undefined, "Xem lại chi tiết bài làm")}</span>
+                <span>
+                  {t(
+                    "modes.reviewAnswers",
+                    undefined,
+                    "Xem lại chi tiết bài làm",
+                  )}
+                </span>
               </h3>
               <span className="text-xs text-[#939bb4]">
                 {testResult.correctCount} / {testResult.totalQuestions} câu đúng
@@ -902,12 +924,16 @@ export const TestMode: React.FC = () => {
                       {rev.isCorrect ? (
                         <span className="text-emerald-400 flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>{t("modes.correct", undefined, "Chính xác")}</span>
+                          <span>
+                            {t("modes.correct", undefined, "Chính xác")}
+                          </span>
                         </span>
                       ) : (
                         <span className="text-rose-400 flex items-center gap-1 bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 rounded-full">
                           <XCircle className="w-3.5 h-3.5" />
-                          <span>{t("modes.incorrect", undefined, "Chưa đúng")}</span>
+                          <span>
+                            {t("modes.incorrect", undefined, "Chưa đúng")}
+                          </span>
                         </span>
                       )}
                     </div>
@@ -920,7 +946,11 @@ export const TestMode: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     <div className="bg-[#0a092d] p-3 rounded-xl border border-[#252b48]">
                       <span className="text-[#939bb4] block mb-1">
-                        {t("modes.yourAnswer", undefined, "Câu trả lời của bạn:")}
+                        {t(
+                          "modes.yourAnswer",
+                          undefined,
+                          "Câu trả lời của bạn:",
+                        )}
                       </span>
                       <strong
                         className={
@@ -980,22 +1010,33 @@ export const TestMode: React.FC = () => {
                     </div>
 
                     <div className="text-xs text-[#939bb4]">
-                      Đã trả lời: <span className="text-emerald-400 font-bold">{answeredCount}</span> / {testData.totalQuestions}
+                      Đã trả lời:{" "}
+                      <span className="text-emerald-400 font-bold">
+                        {answeredCount}
+                      </span>{" "}
+                      / {testData.totalQuestions}
                     </div>
                   </div>
 
                   {/* Question Prompt Card */}
                   <div className="py-8 sm:py-10 flex flex-col items-center justify-center text-center px-4 sm:px-8 bg-[#131722]/60 rounded-2xl border border-[#252b48]/60 shadow-inner">
                     <div className="text-xl sm:text-2xl font-bold text-white leading-relaxed tracking-wide">
-                      {renderQuestionPrompt(currentQ.type, currentQ.prompt, true)}
+                      {renderQuestionPrompt(
+                        currentQ.type,
+                        currentQ.prompt,
+                        true,
+                      )}
                     </div>
                   </div>
 
                   {/* Options / Input Area */}
-                  {currentQ.type === QuestionType.MULTIPLE_CHOICE && currentQ.options && currentQ.options.length > 0 ? (
+                  {currentQ.type === QuestionType.MULTIPLE_CHOICE &&
+                  currentQ.options &&
+                  currentQ.options.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                       {currentQ.options.map((opt, optIdx) => {
-                        const letter = ["A", "B", "C", "D"][optIdx] || `${optIdx + 1}`;
+                        const letter =
+                          ["A", "B", "C", "D"][optIdx] || `${optIdx + 1}`;
                         const isSelected = selectedAnswer === opt;
                         return (
                           <button
@@ -1029,7 +1070,9 @@ export const TestMode: React.FC = () => {
                                   : "border-[#3b4568] bg-transparent opacity-40 group-hover:opacity-100"
                               }`}
                             >
-                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                              {isSelected && (
+                                <Check className="w-3 h-3 stroke-[3]" />
+                              )}
                             </div>
                           </button>
                         );
@@ -1142,7 +1185,9 @@ export const TestMode: React.FC = () => {
                       variant="secondary"
                       size="md"
                       disabled={currentIndex === 0}
-                      onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
+                      onClick={() =>
+                        setCurrentIndex((prev) => Math.max(0, prev - 1))
+                      }
                       icon={<ArrowLeft className="w-4 h-4" />}
                     >
                       Câu trước
@@ -1182,7 +1227,11 @@ export const TestMode: React.FC = () => {
                   Danh sách câu hỏi bài thi
                 </span>
                 <span className="text-[#939bb4]">
-                  Đã trả lời <span className="text-emerald-400 font-bold">{answeredCount}</span> / {testData.totalQuestions} câu
+                  Đã trả lời{" "}
+                  <span className="text-emerald-400 font-bold">
+                    {answeredCount}
+                  </span>{" "}
+                  / {testData.totalQuestions} câu
                 </span>
               </div>
 
@@ -1218,10 +1267,12 @@ export const TestMode: React.FC = () => {
               <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#252b48]/60">
                 <div className="text-xs text-[#939bb4] flex items-center gap-3">
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" /> Đã làm
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />{" "}
+                    Đã làm
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#252b48] inline-block" /> Chưa làm
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#252b48] inline-block" />{" "}
+                    Chưa làm
                   </span>
                 </div>
 
@@ -1279,10 +1330,13 @@ export const TestMode: React.FC = () => {
                     </div>
 
                     {/* Multiple Choice Options */}
-                    {q.type === QuestionType.MULTIPLE_CHOICE && q.options && q.options.length > 0 ? (
+                    {q.type === QuestionType.MULTIPLE_CHOICE &&
+                    q.options &&
+                    q.options.length > 0 ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                         {q.options.map((opt, optIdx) => {
-                          const letter = ["A", "B", "C", "D"][optIdx] || `${optIdx + 1}`;
+                          const letter =
+                            ["A", "B", "C", "D"][optIdx] || `${optIdx + 1}`;
                           const isSelected = selectedAnswer === opt;
                           return (
                             <button
@@ -1316,7 +1370,9 @@ export const TestMode: React.FC = () => {
                                     : "border-[#3b4568] bg-transparent opacity-40 group-hover:opacity-100"
                                 }`}
                               >
-                                {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                {isSelected && (
+                                  <Check className="w-2.5 h-2.5 stroke-[3]" />
+                                )}
                               </div>
                             </button>
                           );

@@ -8,9 +8,7 @@ import {
   Save,
   Eye,
   Clock,
-  CheckCircle2,
   Calendar,
-  Sparkles,
   Info,
 } from "lucide-react";
 
@@ -21,8 +19,8 @@ export interface AdminMaintenanceTabProps {
   isSaving: boolean;
 }
 
-export const AdminMaintenanceTab: React.FC<AdminMaintenanceTabProps> = React.memo(
-  ({ config, onSave, isLoading, isSaving }) => {
+export const AdminMaintenanceTab: React.FC<AdminMaintenanceTabProps> =
+  React.memo(({ config, onSave, isLoading, isSaving }) => {
     const [isActive, setIsActive] = useState(config?.isActive ?? false);
     const [title, setTitle] = useState(
       config?.title ?? "Hệ thống đang được bảo trì và nâng cấp",
@@ -110,10 +108,10 @@ export const AdminMaintenanceTab: React.FC<AdminMaintenanceTabProps> = React.mem
                 Quản lý trạng thái bảo trì toàn hệ thống
               </h2>
               <p className="text-xs sm:text-sm text-[#939bb4] max-w-2xl">
-                Khi kích hoạt, tất cả người dùng thông thường và khách vãng lai sẽ
-                chỉ nhìn thấy màn hình bảo trì chuyên biệt (không có thanh điều
-                hướng, menu hay các trang học). Quản trị viên (Admin) vẫn có thể
-                đăng nhập và kiểm thử bình thường.
+                Khi kích hoạt, tất cả người dùng thông thường và khách vãng lai
+                sẽ chỉ nhìn thấy màn hình bảo trì chuyên biệt (không có thanh
+                điều hướng, menu hay các trang học). Quản trị viên (Admin) vẫn
+                có thể đăng nhập và kiểm thử bình thường.
               </p>
             </div>
 
@@ -146,7 +144,9 @@ export const AdminMaintenanceTab: React.FC<AdminMaintenanceTabProps> = React.mem
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400">
               <Eye className="w-4 h-4" />
-              <span>Xem trước giao diện người dùng thấy (Live Maintenance Preview)</span>
+              <span>
+                Xem trước giao diện người dùng thấy (Live Maintenance Preview)
+              </span>
             </div>
             {isActive ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full">
@@ -367,12 +367,12 @@ export const AdminMaintenanceTab: React.FC<AdminMaintenanceTabProps> = React.mem
               </div>
               <ul className="text-xs text-[#939bb4] space-y-1.5 list-disc list-inside">
                 <li>
-                  Admin vẫn có thể truy cập toàn bộ hệ thống để bảo trì, sửa lỗi và
-                  kiểm tra chức năng.
+                  Admin vẫn có thể truy cập toàn bộ hệ thống để bảo trì, sửa lỗi
+                  và kiểm tra chức năng.
                 </li>
                 <li>
-                  Trang đăng nhập <code className="text-white">/login</code> luôn
-                  mở cho tài khoản Admin đăng nhập khi cần.
+                  Trang đăng nhập <code className="text-white">/login</code>{" "}
+                  luôn mở cho tài khoản Admin đăng nhập khi cần.
                 </li>
                 <li>
                   Khi chế độ bảo trì bật, Admin sẽ thấy thanh cảnh báo màu cam ở
@@ -384,5 +384,4 @@ export const AdminMaintenanceTab: React.FC<AdminMaintenanceTabProps> = React.mem
         </form>
       </div>
     );
-  },
-);
+  });

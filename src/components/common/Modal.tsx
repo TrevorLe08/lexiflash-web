@@ -8,7 +8,8 @@ interface ModalProps {
   onClose: () => void;
   title?: React.ReactNode;
   children: React.ReactNode;
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
+  contentClassName?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -17,6 +18,7 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   children,
   maxWidth = "md",
+  contentClassName,
 }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -41,6 +43,8 @@ export const Modal: React.FC<ModalProps> = ({
     xl: "max-w-xl",
     "2xl": "max-w-2xl",
     "3xl": "max-w-3xl",
+    "4xl": "max-w-4xl",
+    "5xl": "max-w-5xl",
   };
 
   const modalContent = (
@@ -60,7 +64,9 @@ export const Modal: React.FC<ModalProps> = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#2e3856] shrink-0">
-          <div className="text-base sm:text-lg font-bold text-[#f6f7fb] pr-2">{title}</div>
+          <div className="text-base sm:text-lg font-bold text-[#f6f7fb] pr-2">
+            {title}
+          </div>
           <button
             onClick={onClose}
             className="text-[#939bb4] hover:text-white p-1 rounded-lg hover:bg-[#2e3856] transition-colors shrink-0 cursor-pointer"
@@ -70,7 +76,12 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 overscroll-contain touch-pan-y [transform:translateZ(0)] [-webkit-overflow-scrolling:touch]">
+        <div
+          className={cn(
+            "p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 overscroll-contain touch-pan-y [transform:translateZ(0)] [-webkit-overflow-scrolling:touch]",
+            contentClassName,
+          )}
+        >
           {children}
         </div>
       </div>

@@ -8,7 +8,6 @@ import {
   Globe,
   Lock,
   Sparkles,
-  ExternalLink,
   Edit3,
 } from "lucide-react";
 import { Modal } from "../../components/common/Modal";
@@ -118,7 +117,8 @@ export const StudySetSelectCard: React.FC<StudySetSelectCardProps> = ({
           <span>Bạn chưa có học phần nào</span>
         </p>
         <p className="text-[11px] text-amber-300/80">
-          Hãy chọn "Tạo học phần mới" để AI tạo bộ flashcard mới toanh cho bạn nhé!
+          Hãy chọn "Tạo học phần mới" để AI tạo bộ flashcard mới toanh cho bạn
+          nhé!
         </p>
       </div>
     );
@@ -155,7 +155,12 @@ export const StudySetSelectCard: React.FC<StudySetSelectCardProps> = ({
             <div className="flex flex-wrap items-center gap-2 text-xs text-[#8e98b0]">
               <span className="inline-flex items-center gap-1 font-semibold text-indigo-300 bg-[#262e48]/70 px-2 py-0.5 rounded-md text-[11px]">
                 <Layers className="w-3 h-3 text-indigo-400" />
-                <span>{selectedSet?.cards?.length || 0} thẻ hiện có</span>
+                <span>
+                  {typeof selectedSet?.cardCount === "number"
+                    ? selectedSet.cardCount
+                    : selectedSet?.cards?.length || 0}{" "}
+                  thẻ đang có
+                </span>
               </span>
 
               {selectedSet?.privacy === PrivacyLevel.PUBLIC ? (
@@ -299,7 +304,10 @@ export const StudySetSelectCard: React.FC<StudySetSelectCardProps> = ({
                         <div className="flex items-center gap-2 flex-wrap text-xs text-[#8e98b0] pt-0.5">
                           {s.level && renderLevelBadge(s.level)}
                           <span className="font-semibold text-indigo-300 shrink-0">
-                            {s.cards?.length || 0} thẻ
+                            {typeof s.cardCount === "number"
+                              ? s.cardCount
+                              : s.cards?.length || 0}{" "}
+                            thẻ đang có
                           </span>
                           {s.privacy === PrivacyLevel.PRIVATE && (
                             <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-400/90 font-medium bg-amber-500/10 px-1.5 py-0.5 rounded shrink-0">
@@ -354,8 +362,10 @@ export const StudySetSelectCard: React.FC<StudySetSelectCardProps> = ({
             <span className="text-xs text-[#8e98b0]">
               {filteredSets.length > 0 ? (
                 <>
-                  {t("common.page", undefined, "Trang")} {currentPage}/{totalPages} • {t("common.total", undefined, "Tổng cộng")}{" "}
-                  {filteredSets.length} {t("studySet.setsCount", undefined, "học phần")}
+                  {t("common.page", undefined, "Trang")} {currentPage}/
+                  {totalPages} • {t("common.total", undefined, "Tổng cộng")}{" "}
+                  {filteredSets.length}{" "}
+                  {t("studySet.setsCount", undefined, "học phần")}
                 </>
               ) : (
                 `Tổng cộng ${userSets.length} học phần của bạn`

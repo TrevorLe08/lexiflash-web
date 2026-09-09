@@ -203,7 +203,11 @@ export const ClassesPage: React.FC = () => {
             <Button variant="secondary" onClick={() => setJoinModalOpen(true)}>
               {t("classes.joinByCodeBtn", undefined, "Join with Code")}
             </Button>
-            <Button variant="primary" onClick={() => setCreateModalOpen(true)} icon={<Plus className="w-4 h-4" />}>
+            <Button
+              variant="primary"
+              onClick={() => setCreateModalOpen(true)}
+              icon={<Plus className="w-4 h-4" />}
+            >
               {t("classes.createGroupBtn", undefined, "Create Group")}
             </Button>
           </div>
@@ -386,11 +390,7 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={t(
-        "classes.createModalTitle",
-        undefined,
-        "Create New Study Group",
-      )}
+      title={t("classes.createModalTitle", undefined, "Create New Study Group")}
     >
       <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
         <Input
@@ -427,11 +427,7 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onClose}
-          >
+          <Button type="button" variant="ghost" onClick={onClose}>
             {t("common.cancel", undefined, "Cancel")}
           </Button>
           <Button type="submit" variant="primary" loading={isCreating}>
@@ -508,11 +504,7 @@ const JoinClassModal: React.FC<JoinClassModalProps> = ({
         />
 
         <div className="flex justify-end gap-2 pt-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onClose}
-          >
+          <Button type="button" variant="ghost" onClick={onClose}>
             {t("common.cancel", undefined, "Cancel")}
           </Button>
           <Button type="submit" variant="primary" loading={isJoining}>

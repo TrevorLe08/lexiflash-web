@@ -1,4 +1,4 @@
-  import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { fetchStudySetById } from "../../store/slices/studySetSlice";
@@ -55,7 +55,9 @@ export const WriteMode: React.FC = () => {
   } | null>(null);
 
   const [correctCards, setCorrectCards] = useState<Card[]>([]);
-  const [incorrectCards, setIncorrectCards] = useState<IncorrectSubmission[]>([]);
+  const [incorrectCards, setIncorrectCards] = useState<IncorrectSubmission[]>(
+    [],
+  );
   const [isCompleted, setIsCompleted] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [accent, setAccent] = useState<VoiceAccent>(getVoiceAccent());
@@ -83,7 +85,11 @@ export const WriteMode: React.FC = () => {
       const count = currentSet.cards.length;
       setQuestionCount((prev) => {
         const next =
-          prev > count ? count : prev === 10 ? Math.min(10, Math.max(1, count)) : prev;
+          prev > count
+            ? count
+            : prev === 10
+              ? Math.min(10, Math.max(1, count))
+              : prev;
         setCountInput(String(next));
         return next;
       });
@@ -93,7 +99,10 @@ export const WriteMode: React.FC = () => {
   const handleStartPractice = () => {
     if (!currentSet?.cards || currentSet.cards.length === 0) return;
     const finalCount = countInput
-      ? Math.min(currentSet.cards.length, Math.max(1, parseInt(countInput, 10) || questionCount))
+      ? Math.min(
+          currentSet.cards.length,
+          Math.max(1, parseInt(countInput, 10) || questionCount),
+        )
       : questionCount;
     setQuestionCount(finalCount);
     setCountInput(String(finalCount));
@@ -117,7 +126,7 @@ export const WriteMode: React.FC = () => {
     if (isCompleted) return;
     const timer = setInterval(() => {
       setTimeSpentSeconds(
-        Math.max(0, Math.floor((Date.now() - startTimeRef.current) / 1000))
+        Math.max(0, Math.floor((Date.now() - startTimeRef.current) / 1000)),
       );
     }, 1000);
     return () => clearInterval(timer);
@@ -155,7 +164,11 @@ export const WriteMode: React.FC = () => {
       <div className="max-w-md mx-auto py-16 text-center space-y-4 animate-fade-in">
         <Headphones className="w-12 h-12 text-[#6366F1] mx-auto" />
         <h2 className="text-2xl font-bold text-white">
-          {t("auth.loginTitle", undefined, "Log in to use Listening & Dictation")}
+          {t(
+            "auth.loginTitle",
+            undefined,
+            "Log in to use Listening & Dictation",
+          )}
         </h2>
         <p className="text-sm text-[#939bb4]">
           {t(
@@ -220,7 +233,7 @@ export const WriteMode: React.FC = () => {
       if (isAuthenticated && id) {
         const timeSpent = Math.max(
           1,
-          Math.round((Date.now() - startTimeRef.current) / 1000)
+          Math.round((Date.now() - startTimeRef.current) / 1000),
         );
 
         const correctIds = correctCards.map((c) => c.id);
@@ -287,9 +300,12 @@ export const WriteMode: React.FC = () => {
     return (
       <div className="max-w-md mx-auto py-16 text-center space-y-4 animate-fade-in">
         <Headphones className="w-12 h-12 text-[#6366F1] mx-auto opacity-50" />
-        <h2 className="text-xl font-bold text-white">Học phần chưa có từ vựng</h2>
+        <h2 className="text-xl font-bold text-white">
+          Học phần chưa có từ vựng
+        </h2>
         <p className="text-sm text-[#939bb4]">
-          Vui lòng thêm thẻ từ vựng vào học phần trước khi luyện nghe & viết chính tả.
+          Vui lòng thêm thẻ từ vựng vào học phần trước khi luyện nghe & viết
+          chính tả.
         </p>
         <Link to={`/sets/${id}`}>
           <Button variant="primary">Quay về học phần</Button>
@@ -477,7 +493,9 @@ export const WriteMode: React.FC = () => {
 
           <div className="flex items-center gap-1.5 text-emerald-400 font-semibold bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>{t("modes.scoreCountCorrect", { count: correctCards.length })}</span>
+            <span>
+              {t("modes.scoreCountCorrect", { count: correctCards.length })}
+            </span>
           </div>
         </div>
       </div>
@@ -595,7 +613,7 @@ export const WriteMode: React.FC = () => {
                     {t(
                       "modes.perfectNoMistakes",
                       undefined,
-                      "Perfect! No mistakes recorded. 🎉"
+                      "Perfect! No mistakes recorded. 🎉",
                     )}
                   </p>
                 )}
@@ -641,7 +659,7 @@ export const WriteMode: React.FC = () => {
                 {t(
                   "modes.dictationPrompt",
                   undefined,
-                  "Listen to pronunciation and type the word"
+                  "Listen to pronunciation and type the word",
                 )}
               </span>
             </div>

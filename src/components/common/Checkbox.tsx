@@ -2,8 +2,10 @@ import React, { forwardRef } from "react";
 import { Check } from "lucide-react";
 import { cn } from "../../utils/cn";
 
-export interface CheckboxProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
+export interface CheckboxProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "onChange"
+> {
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: React.ReactNode;

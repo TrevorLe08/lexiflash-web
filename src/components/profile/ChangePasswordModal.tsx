@@ -34,18 +34,14 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    reset,
-  } = useForm<ChangePasswordFormValues>({
-    defaultValues: {
-      oldPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    },
-  });
+  const { register, handleSubmit, watch, reset } =
+    useForm<ChangePasswordFormValues>({
+      defaultValues: {
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      },
+    });
 
   const newPassword = watch("newPassword") || "";
   const confirmPassword = watch("confirmPassword") || "";
@@ -102,11 +98,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title="Đổi mật khẩu tài khoản"
-    >
+    <Modal isOpen={isOpen} onClose={handleClose} title="Đổi mật khẩu tài khoản">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <div className="relative">
@@ -170,12 +162,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
         )}
 
         <div className="flex justify-end gap-3 pt-4 border-t border-[#2e3856]">
-          <Button
-            type="button"
-            variant="ghost"
-            size="md"
-            onClick={handleClose}
-          >
+          <Button type="button" variant="ghost" size="md" onClick={handleClose}>
             Hủy
           </Button>
           <Button

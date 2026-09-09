@@ -1,5 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { useState, useEffect } from "react";
-import { BannerNotificationConfig, BannerColor } from "../../../types/system.types";
+import {
+  BannerNotificationConfig,
+  BannerColor,
+} from "../../../types/system.types";
 import { BANNER_COLOR_MAP } from "../../../components/layout/bannerColors";
 import { Button } from "../../../components/common/Button";
 import {
@@ -63,7 +67,17 @@ export const COLOR_PRESETS: Array<{
   },
 ];
 
-export const EMOJI_QUICK_LIST = ["🔥", "📢", "🚀", "✨", "⚡", "🎉", "💎", "⚠️", "🔔"];
+export const EMOJI_QUICK_LIST = [
+  "🔥",
+  "📢",
+  "🚀",
+  "✨",
+  "⚡",
+  "🎉",
+  "💎",
+  "⚠️",
+  "🔔",
+];
 
 export interface AdminBannerTabProps {
   banner: BannerNotificationConfig | null;
@@ -135,7 +149,9 @@ export const AdminBannerTab: React.FC<AdminBannerTabProps> = React.memo(
             <div className="space-y-1.5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-[#9cb1ff] text-xs font-bold uppercase tracking-wider">
                 <Megaphone className="w-3.5 h-3.5" />
-                <span>Banner Thông Báo Đầu Trang (Top Notification Banner)</span>
+                <span>
+                  Banner Thông Báo Đầu Trang (Top Notification Banner)
+                </span>
               </div>
               <h2 className="text-xl font-black text-white">
                 Tùy chỉnh thông báo xuất hiện ở đầu website
@@ -224,7 +240,8 @@ export const AdminBannerTab: React.FC<AdminBannerTabProps> = React.memo(
                   <span className="font-semibold tracking-wide drop-shadow-xs whitespace-nowrap">
                     {message.trim() || (
                       <span className="opacity-75 italic font-normal">
-                        Nội dung thông báo sẽ chạy chữ từ phải sang trái như thế này...
+                        Nội dung thông báo sẽ chạy chữ từ phải sang trái như thế
+                        này...
                       </span>
                     )}
                   </span>

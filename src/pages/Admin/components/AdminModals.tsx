@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Modal } from "../../../components/common/Modal";
 import { Button } from "../../../components/common/Button";
 import { UserRole } from "../../../types";
-import { ShieldCheck, Crown, Sparkles } from "lucide-react";
+import { Crown, Sparkles } from "lucide-react";
 import { useForm } from "react-hook-form";
 
 // ==========================================
@@ -16,8 +16,8 @@ export interface AdminCustomTagsModalProps {
   isSaving: boolean;
 }
 
-export const AdminCustomTagsModal: React.FC<AdminCustomTagsModalProps> = React.memo(
-  ({ isOpen, selectedSet, onClose, onSave, isSaving }) => {
+export const AdminCustomTagsModal: React.FC<AdminCustomTagsModalProps> =
+  React.memo(({ isOpen, selectedSet, onClose, onSave, isSaving }) => {
     const { register, handleSubmit, reset } = useForm<{ tags: string }>({
       defaultValues: { tags: "" },
     });
@@ -48,7 +48,8 @@ export const AdminCustomTagsModal: React.FC<AdminCustomTagsModalProps> = React.m
             <strong className="text-white font-bold">
               "{selectedSet.title}"
             </strong>
-            . These tags enhance search indexing and content discovery for learners.
+            . These tags enhance search indexing and content discovery for
+            learners.
           </p>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-[#939bb4]">
@@ -62,7 +63,8 @@ export const AdminCustomTagsModal: React.FC<AdminCustomTagsModalProps> = React.m
               autoFocus
             />
             <p className="text-xs text-[#939bb4]">
-              Separate multiple tags with a comma (e.g. <code>ielts, academic, band-7</code>)
+              Separate multiple tags with a comma (e.g.{" "}
+              <code>ielts, academic, band-7</code>)
             </p>
           </div>
           <div className="flex justify-end gap-3 pt-2">
@@ -86,8 +88,7 @@ export const AdminCustomTagsModal: React.FC<AdminCustomTagsModalProps> = React.m
         </form>
       </Modal>
     );
-  },
-);
+  });
 
 // ==========================================
 // Combined Admin Modals Component
@@ -236,7 +237,8 @@ export const AdminModals: React.FC<AdminModalsProps> = React.memo(
                 <div>
                   {actionUser.isVip ||
                   (actionUser.vipExpiresAt &&
-                    new Date(actionUser.vipExpiresAt).getTime() > Date.now()) ? (
+                    new Date(actionUser.vipExpiresAt).getTime() >
+                      Date.now()) ? (
                     actionUser.vipPlan === "1_YEAR" ? (
                       <span className="inline-flex items-center gap-1 text-[11px] font-bold text-cyan-300 bg-cyan-500/20 border border-cyan-500/30 px-2 py-0.5 rounded">
                         <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
@@ -295,7 +297,8 @@ export const AdminModals: React.FC<AdminModalsProps> = React.memo(
                         <span>Cấp Gói VIP Gold (1 Tháng)</span>
                       </p>
                       <p className="text-[11px] text-[#939bb4]">
-                        20 lượt AI/ngày, không giới hạn thẻ học, huy hiệu Gold 👑 (+30 ngày).
+                        20 lượt AI/ngày, không giới hạn thẻ học, huy hiệu Gold
+                        👑 (+30 ngày).
                       </p>
                     </div>
                   </div>
@@ -327,7 +330,8 @@ export const AdminModals: React.FC<AdminModalsProps> = React.memo(
                         <span>Cấp Gói VIP Diamond Elite (1 Năm)</span>
                       </p>
                       <p className="text-[11px] text-[#939bb4]">
-                        40 lượt AI/ngày (gấp đôi), Early Access Beta, huy hiệu Diamond 💎 (+365 ngày).
+                        40 lượt AI/ngày (gấp đôi), Early Access Beta, huy hiệu
+                        Diamond 💎 (+365 ngày).
                       </p>
                     </div>
                   </div>
@@ -358,21 +362,20 @@ export const AdminModals: React.FC<AdminModalsProps> = React.memo(
                         Hủy gói VIP (Chuyển về Miễn phí)
                       </p>
                       <p className="text-[11px] text-[#939bb4]">
-                        Thu hồi quyền tạo trên 300 thẻ và tắt quyền sử dụng AI ngay lập tức.
+                        Thu hồi quyền tạo trên 300 thẻ và tắt quyền sử dụng AI
+                        ngay lập tức.
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-rose-400">Hủy VIP</span>
+                  <span className="text-xs font-bold text-rose-400">
+                    Hủy VIP
+                  </span>
                 </label>
               </div>
 
               {/* Modal Actions */}
               <div className="flex justify-end gap-3 pt-3 border-t border-[#2e3856]">
-                <Button
-                  variant="secondary"
-                  size="md"
-                  onClick={onCloseVipModal}
-                >
+                <Button variant="secondary" size="md" onClick={onCloseVipModal}>
                   Đóng
                 </Button>
                 <Button
@@ -420,16 +423,13 @@ export const AdminModals: React.FC<AdminModalsProps> = React.memo(
                   <>
                     Are you sure you want to suspend{" "}
                     <strong className="text-white">{actionUser.name}</strong>?
-                    They will be immediately blocked from accessing their account.
+                    They will be immediately blocked from accessing their
+                    account.
                   </>
                 )}
               </p>
               <div className="flex justify-end gap-3 pt-2">
-                <Button
-                  variant="secondary"
-                  size="md"
-                  onClick={onCloseBanModal}
-                >
+                <Button variant="secondary" size="md" onClick={onCloseBanModal}>
                   Cancel
                 </Button>
                 <Button

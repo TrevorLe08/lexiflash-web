@@ -7,7 +7,14 @@ import { addToast } from "../../store/slices/uiSlice";
 import { Button } from "../../components/common/Button";
 import { Input } from "../../components/common/Input";
 import { Logo } from "../../components/common/Logo";
-import { Lock, ArrowLeft, CheckCircle2, AlertTriangle, Eye, EyeOff } from "lucide-react";
+import {
+  Lock,
+  ArrowLeft,
+  CheckCircle2,
+  AlertTriangle,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { useTranslation } from "../../i18n";
 import {
   PasswordStrengthMeter,
@@ -132,10 +139,12 @@ export const ResetPasswordPage: React.FC = () => {
           <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto shadow-inner">
             <AlertTriangle className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold text-white">Liên kết không hợp lệ</h2>
+          <h2 className="text-xl font-bold text-white">
+            Liên kết không hợp lệ
+          </h2>
           <p className="text-xs text-[#939bb4] leading-relaxed">
-            Đường dẫn đặt lại mật khẩu thiếu thông tin mã xác thực hoặc email. Vui
-            lòng yêu cầu liên kết mới.
+            Đường dẫn đặt lại mật khẩu thiếu thông tin mã xác thực hoặc email.
+            Vui lòng yêu cầu liên kết mới.
           </p>
           <div className="pt-2">
             <Link to="/forgot-password">
@@ -175,8 +184,8 @@ export const ResetPasswordPage: React.FC = () => {
                 Mật khẩu đã được cập nhật!
               </h3>
               <p className="text-xs text-[#939bb4] leading-relaxed">
-                Mật khẩu tài khoản của bạn đã được thay đổi thành công. Hãy sử dụng
-                mật khẩu mới này để đăng nhập.
+                Mật khẩu tài khoản của bạn đã được thay đổi thành công. Hãy sử
+                dụng mật khẩu mới này để đăng nhập.
               </p>
             </div>
 
@@ -220,7 +229,10 @@ export const ResetPasswordPage: React.FC = () => {
               </div>
 
               {/* Password Strength Meter & Live Checklist */}
-              <PasswordStrengthMeter password={newPassword} className="mt-2.5" />
+              <PasswordStrengthMeter
+                password={newPassword}
+                className="mt-2.5"
+              />
             </div>
 
             {/* Confirm Password */}
@@ -240,7 +252,9 @@ export const ResetPasswordPage: React.FC = () => {
               )}
             </div>
 
-            {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
+            {error && (
+              <p className="text-xs text-red-400 font-medium">{error}</p>
+            )}
 
             <Button
               type="submit"

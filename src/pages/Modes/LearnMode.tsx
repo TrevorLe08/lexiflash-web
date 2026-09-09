@@ -7,12 +7,7 @@ import { Button } from "../../components/common/Button";
 import { AudioButton } from "../../components/study/AudioButton";
 import { StudyHeaderBar } from "../../components/study/StudyHeaderBar";
 import { triggerConfetti } from "../../utils/confetti";
-import {
-  BrainCircuit,
-  RotateCcw,
-  Trophy,
-  CheckCircle2,
-} from "lucide-react";
+import { BrainCircuit, RotateCcw, Trophy, CheckCircle2 } from "lucide-react";
 import { Spinner } from "../../components/common/Spinner";
 import { EntityNotFound } from "../../components/common/EntityNotFound";
 import { Card, SetStudyProgressSummary, StudyMode } from "../../types";
@@ -395,11 +390,7 @@ export const LearnMode: React.FC = () => {
             {isDueOnly && (
               <Link to="/reviews">
                 <Button variant="outline" size="lg">
-                  {t(
-                    "srs.dueReviewBackToList",
-                    undefined,
-                    "Quay về danh sách",
-                  )}
+                  {t("srs.dueReviewBackToList", undefined, "Quay về danh sách")}
                 </Button>
               </Link>
             )}
@@ -426,7 +417,11 @@ export const LearnMode: React.FC = () => {
               <h2 className="text-3xl md:text-5xl font-black text-white">
                 {currentCard.term}
               </h2>
-              <AudioButton text={currentCard.term} size="md" showAccentToggle={true} />
+              <AudioButton
+                text={currentCard.term}
+                size="md"
+                showAccentToggle={true}
+              />
             </div>
 
             {currentCard.phonetic && (

@@ -7,6 +7,7 @@
 ---
 
 ## 📋 Mục Lục
+
 - [1. Công Nghệ & Thư Viện Chính](#1-công-nghệ--thư-viện-chính)
 - [2. Điểm Nhấn Tối Ưu Hiệu Năng (Anti-Lag Architecture)](#2-điểm-nhấn-tối-ưu-hiệu-năng-anti-lag-architecture)
 - [3. Cấu Trúc Thư Mục](#3-cấu-trúc-thư-mục)
@@ -37,9 +38,9 @@
 Dự án áp dụng 4 kỹ thuật tối ưu hóa chuyên sâu nhằm đạt mức phản hồi tức thì 60 FPS:
 
 1. **`createPortal` cho toàn bộ Modal:**
-   Mọi Modal (`AiGenerateModal`, `CreateFolderModal`, `CreateClassModal`, `AdminCustomTagsModal`, `ConfirmModal`) đều được render trực tiếp vào thẻ `document.body`. Điều này biến modal thành một *Compositing Layer* riêng biệt trên GPU, tránh layout reflow và không bắt trang cha phải vẽ lại khi modal hoạt động.
+   Mọi Modal (`AiGenerateModal`, `CreateFolderModal`, `CreateClassModal`, `AdminCustomTagsModal`, `ConfirmModal`) đều được render trực tiếp vào thẻ `document.body`. Điều này biến modal thành một _Compositing Layer_ riêng biệt trên GPU, tránh layout reflow và không bắt trang cha phải vẽ lại khi modal hoạt động.
 2. **`react-hook-form` Phản Hồi 0ms (0 Lần Re-render Khi Gõ):**
-   Chuyển đổi toàn bộ các ô nhập dữ liệu sang mô hình *Uncontrolled Components*. Việc gõ phím diễn ra ở tốc độ gốc của trình duyệt mà không kích hoạt chu kỳ render của React component cha.
+   Chuyển đổi toàn bộ các ô nhập dữ liệu sang mô hình _Uncontrolled Components_. Việc gõ phím diễn ra ở tốc độ gốc của trình duyệt mà không kích hoạt chu kỳ render của React component cha.
 3. **`@tanstack/react-query` Caching:**
    Lưu trữ kết quả tìm kiếm và dữ liệu khám phá trong 1–3 phút. Chuyển trang tức thì 0ms mà không gửi lại HTTP request thừa thãi lên server.
 4. **`@tanstack/react-virtual` Trong Set Editor:**
@@ -107,24 +108,30 @@ VITE_API_URL=http://localhost:5000/api/v1
 ## 5. Cài Đặt & Khởi Chạy
 
 ### 5.1. Cài đặt các gói phụ thuộc:
+
 ```bash
 cd client
 npm install
 ```
 
 ### 5.2. Chạy môi trường phát triển (Development):
+
 ```bash
 npm run dev
 ```
+
 > Ứng dụng sẽ khởi chạy tại `http://localhost:3000`.
 
 ### 5.3. Biên dịch bản chính thức (Production Build):
+
 ```bash
 npm run build
 ```
+
 > Mã nguồn được tự động kiểm tra kiểu dữ liệu `tsc -b` và đóng gói vào thư mục `dist/`. Mã nguồn được chia nhỏ thành các chunk chuyên biệt (`vendor-react`, `vendor-tanstack`, `vendor-core`, `vendor-xlsx`).
 
 ### 5.4. Xem trước bản build (Preview):
+
 ```bash
 npm run preview
 ```
@@ -134,6 +141,7 @@ npm run preview
 ## 6. Các Tính Năng Nổi Bật
 
 ### 📖 5 Chế Độ Học Tập Toàn Diện
+
 1. **Thẻ Ghi Nhớ (Flashcards):** Lật thẻ 3D, hỗ trợ phím tắt Space/Mũi tên, phát âm chuẩn bản ngữ.
 2. **Học Chủ Động (Learn):** Điều chỉnh lịch ôn tập theo trí nhớ người học.
 3. **Chính Tả & Viết (Write):** Gõ từ vựng tiếng Anh theo định nghĩa và nghe phát âm.
@@ -141,15 +149,18 @@ npm run preview
 5. **Nối Từ Thách Đấu (Match Game):** Trò chơi ghép thẻ đếm thời gian thực kèm bảng xếp hạng kỷ lục cá nhân.
 
 ### 🤖 Trợ Lý Trí Tuệ Nhân Tạo (AI Flashcard Generator)
+
 - Tự động sinh danh sách 5–20 từ vựng song ngữ theo chủ đề yêu cầu.
 - Giải thích chi tiết ngữ nghĩa, từ loại, phiên âm chuẩn IPA và câu ví dụ ngữ cảnh.
 
 ### 📱 Giao Diện Mobile & Trải Nghiệm Người Dùng (UX/UI)
+
 - Giao diện đáp ứng (Responsive) mượt mà trên điện thoại di động và máy tính bảng.
 - Thanh điều hướng thông minh hỗ trợ Dropdown và Sidebar tiện lợi trên màn hình nhỏ.
 - Hỗ trợ đổi email cá nhân và quản lý tài khoản an toàn trong trang Profile.
 
 ### 🛡️ Trung Tâm Quản Trị (Admin Control Center)
+
 - Quản lý người dùng, phân quyền Admin/User, khóa/mở khóa tài khoản.
 - Quản lý duyệt nội dung học phần toàn sàn và tùy chỉnh danh sách chủ đề nổi bật trên trang chủ.
 
@@ -158,6 +169,7 @@ npm run preview
 ## 7. Hướng Dẫn Deploy Frontend (Vercel)
 
 ### 🚀 Triển khai lên Vercel
+
 1. Đăng nhập vào [Vercel.com](https://vercel.com).
 2. Nhấn **Add New...** ➔ **Project**.
 3. Import kho lưu trữ (Repository) GitHub của dự án LexiFlash.
@@ -170,4 +182,4 @@ npm run preview
    - **Key:** `VITE_API_URL`
    - **Value:** `YOUR_URL_BACKEND` (URL Backend đã deploy của bạn)
 6. Nhấn **Deploy**.
-   > *Lưu ý:* File `client/vercel.json` đã có sẵn trong dự án sẽ tự động cấu hình URL Rewrites, giúp tránh triệt để lỗi 404 khi người dùng F5 tải lại các trang như `/profile`, `/sets/123` hay `/admin`.
+   > _Lưu ý:_ File `client/vercel.json` đã có sẵn trong dự án sẽ tự động cấu hình URL Rewrites, giúp tránh triệt để lỗi 404 khi người dùng F5 tải lại các trang như `/profile`, `/sets/123` hay `/admin`.

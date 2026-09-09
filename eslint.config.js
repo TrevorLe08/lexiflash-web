@@ -31,6 +31,7 @@ export default defineConfig([
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/exhaustive-deps": "warn",
       "react-hooks/purity": "off",
+      "react-hooks/incompatible-library": "off",
     },
   },
 ]);

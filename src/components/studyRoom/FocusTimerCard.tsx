@@ -18,6 +18,23 @@ interface FocusTimerCardProps {
   skipTimer: () => void;
 }
 
+const getModeButtonVariant = (
+  mode: TimerMode,
+): "primary" | "emerald" | "teal" | "purple" => {
+  switch (mode) {
+    case "POMODORO":
+      return "primary";
+    case "SHORT_BREAK":
+      return "emerald";
+    case "LONG_BREAK":
+      return "teal";
+    case "CUSTOM_STOPWATCH":
+      return "purple";
+    default:
+      return "primary";
+  }
+};
+
 export const FocusTimerCard: React.FC<FocusTimerCardProps> = ({
   mode,
   isRunning,
@@ -149,48 +166,68 @@ export const FocusTimerCard: React.FC<FocusTimerCardProps> = ({
         </div>
       </div>
 
-      {/* Controls Bar */}
-      <div className="flex items-center gap-4 pt-2">
+      {/* Controls Bar with 3D Mode-aware Buttons & Ambient Effects */}
+      <div className="flex items-center gap-5 pt-2">
+        {/* Reset Button */}
         <Button
           variant="outline"
-          size="md"
+          size="sm"
+          type="button"
           onClick={resetTimer}
-          icon={<RotateCcw className="w-4 h-4" />}
           title={t("studyRoom.resetBtn", undefined, "Đặt lại")}
-          className="rounded-full w-11 h-11 p-0 justify-center cursor-pointer"
-        />
+          className="rounded-full w-12 h-12 p-0 min-h-0 shrink-0 group border-2"
+        >
+          <RotateCcw className="w-4 h-4 transition-transform group-hover:-rotate-45" />
+        </Button>
 
-        <Button
-          variant="primary"
-          size="lg"
-          onClick={isRunning ? pauseTimer : startTimer}
-          icon={
-            isRunning ? (
-              <Pause className="w-6 h-6 fill-current" />
-            ) : (
-              <Play className="w-6 h-6 fill-current ml-0.5" />
-            )
-          }
-          className={cn(
-            "rounded-full w-16 h-16 p-0 justify-center", 
-            "shadow-lg cursor-pointer active:scale-95 transition-transform text-white shadow-[#4f5fd8]/30" , 
-            {
-              "bg-[#4f5fd8] hover:bg-[#4352c2]": mode === "POMODORO",
-              "bg-[#059669] hover:bg-[#0b7e59] focus:ring-[#059669]": mode === "SHORT_BREAK",
-              "bg-[#0d9488] hover:bg-[#0f857b] focus:ring-[#0d9488]": mode === "LONG_BREAK",
-              "bg-[#9333ea] hover:bg-[#7827c4] focus:ring-[#9333ea]": mode === "CUSTOM_STOPWATCH",
-            }
+        {/* Main Action Play / Pause 3D Button */}
+        <div className="relative flex items-center justify-center">
+          {/* Subtle Ambient Breathing Glow when timer is running */}
+          {isRunning && (
+            <span
+              className={cn(
+                "absolute rounded-full opacity-45 animate-pulse transition-colors duration-500 pointer-events-none",
+                {
+                  "bg-[#6366F1]": mode === "POMODORO",
+                  "bg-emerald-500": mode === "SHORT_BREAK",
+                  "bg-teal-500": mode === "LONG_BREAK",
+                  "bg-purple-500": mode === "CUSTOM_STOPWATCH",
+                },
+              )}
+            />
           )}
-        />
 
+          <Button
+            variant={getModeButtonVariant(mode)}
+            size="lg"
+            type="button"
+            onClick={isRunning ? pauseTimer : startTimer}
+            className="relative z-10 w-16 h-16 sm:w-18 sm:h-18 p-0 sm:p-0 min-h-0 sm:min-h-0 rounded-full border-2 justify-center"
+            title={
+              isRunning
+                ? t("studyRoom.pause", undefined, "Tạm dừng")
+                : t("studyRoom.start", undefined, "Bắt đầu")
+            }
+          >
+            {isRunning ? (
+              <Pause className="w-7 h-7 fill-current drop-shadow-sm" />
+            ) : (
+              <Play className="w-7 h-7 fill-current ml-1 drop-shadow-sm" />
+            )}
+          </Button>
+        </div>
+
+        {/* Skip / Complete Button */}
         <Button
           variant="outline"
-          size="md"
+          size="sm"
+          type="button"
           onClick={skipTimer}
-          icon={<SkipForward className="w-4 h-4" />}
           title={t("studyRoom.skipBtn", undefined, "Bỏ qua / Hoàn thành")}
-          className="rounded-full w-11 h-11 p-0 justify-center cursor-pointer"
-        />
+          className="rounded-full w-12 h-12 p-0 min-h-0 shrink-0 group border-2"
+        >
+          <SkipForward className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+        </Button>
       </div>
     </div>
   );

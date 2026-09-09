@@ -5,6 +5,8 @@
 export type VoiceAccent = "en-US" | "en-GB";
 
 const ACCENT_STORAGE_KEY = "lexiflash_voice_accent";
+const SPEED_STORAGE_KEY = "lexiflash_voice_speed";
+const AUTOPLAY_STORAGE_KEY = "lexiflash_voice_autoplay";
 
 let currentAccent: VoiceAccent = (() => {
   try {
@@ -16,7 +18,31 @@ let currentAccent: VoiceAccent = (() => {
   return "en-US";
 })();
 
+let currentSpeed: number = (() => {
+  try {
+    const saved = localStorage.getItem(SPEED_STORAGE_KEY);
+    if (saved) {
+      const val = parseFloat(saved);
+      if (!isNaN(val) && val >= 0.5 && val <= 2.0) return val;
+    }
+  } catch {
+    // ignore
+  }
+  return 1.0;
+})();
+
+let currentAutoPlay: boolean = (() => {
+  try {
+    const saved = localStorage.getItem(AUTOPLAY_STORAGE_KEY);
+    if (saved !== null) return saved === "true";
+  } catch {
+    // ignore
+  }
+  return true;
+})();
+
 const listeners = new Set<(accent: VoiceAccent) => void>();
+const speedListeners = new Set<(speed: number) => void>();
 
 /**
  * Get currently selected voice accent ('en-US' or 'en-GB')
@@ -39,6 +65,45 @@ export function setVoiceAccent(accent: VoiceAccent): void {
 }
 
 /**
+ * Get current voice playback speed (e.g. 0.8, 1.0, 1.2)
+ */
+export function getVoiceSpeed(): number {
+  return currentSpeed;
+}
+
+/**
+ * Set voice playback speed
+ */
+export function setVoiceSpeed(speed: number): void {
+  currentSpeed = speed;
+  try {
+    localStorage.setItem(SPEED_STORAGE_KEY, speed.toString());
+  } catch {
+    // ignore
+  }
+  speedListeners.forEach((fn) => fn(speed));
+}
+
+/**
+ * Get auto-play pronunciation setting
+ */
+export function getAutoPlayPronunciation(): boolean {
+  return currentAutoPlay;
+}
+
+/**
+ * Set auto-play pronunciation setting
+ */
+export function setAutoPlayPronunciation(enabled: boolean): void {
+  currentAutoPlay = enabled;
+  try {
+    localStorage.setItem(AUTOPLAY_STORAGE_KEY, enabled.toString());
+  } catch {
+    // ignore
+  }
+}
+
+/**
  * Toggle between US and UK accent
  */
 export function toggleVoiceAccent(): VoiceAccent {
@@ -50,7 +115,9 @@ export function toggleVoiceAccent(): VoiceAccent {
 /**
  * Subscribe to accent changes
  */
-export function subscribeVoiceAccent(fn: (accent: VoiceAccent) => void): () => void {
+export function subscribeVoiceAccent(
+  fn: (accent: VoiceAccent) => void,
+): () => void {
   listeners.add(fn);
   return () => {
     listeners.delete(fn);
@@ -81,9 +148,7 @@ export function speakText(text: string, overrideAccent?: VoiceAccent): void {
   // 1. Try Piper TTS Web Engine if loaded
   if (piperInstance && typeof piperInstance.predict === "function") {
     const voiceId =
-      accent === "en-GB"
-        ? "en_GB-alan-medium"
-        : "en_US-hfc_female-medium";
+      accent === "en-GB" ? "en_GB-alan-medium" : "en_US-hfc_female-medium";
 
     piperInstance
       .predict({ text, voiceId })
@@ -116,7 +181,7 @@ function fallbackWebSpeech(text: string, accent: VoiceAccent) {
 
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = accent;
-  utterance.rate = 0.9; // Optimal speed for language learners
+  utterance.rate = currentSpeed || 0.9;
   utterance.pitch = 1.0;
 
   const voices = window.speechSynthesis.getVoices();
@@ -162,4 +227,3 @@ function fallbackWebSpeech(text: string, accent: VoiceAccent) {
 }
 
 export const speakWord = speakText;
-

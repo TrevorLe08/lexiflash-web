@@ -882,108 +882,115 @@ export const ClassDetailPage: React.FC = () => {
                 </Button>
               </Link>
             </div>
-          ) : (() => {
-            const SETS_PER_PAGE = 5;
-            const totalPages =
-              Math.ceil(filteredSets.length / SETS_PER_PAGE) || 1;
-            const paginatedSets = filteredSets.slice(
-              (setModalPage - 1) * SETS_PER_PAGE,
-              setModalPage * SETS_PER_PAGE,
-            );
+          ) : (
+            (() => {
+              const SETS_PER_PAGE = 5;
+              const totalPages =
+                Math.ceil(filteredSets.length / SETS_PER_PAGE) || 1;
+              const paginatedSets = filteredSets.slice(
+                (setModalPage - 1) * SETS_PER_PAGE,
+                setModalPage * SETS_PER_PAGE,
+              );
 
-            if (filteredSets.length === 0) {
+              if (filteredSets.length === 0) {
+                return (
+                  <div className="text-center py-8 text-sm text-[#939bb4]">
+                    {t(
+                      "common.noResults",
+                      undefined,
+                      "No study sets found matching your search.",
+                    )}
+                  </div>
+                );
+              }
+
               return (
-                <div className="text-center py-8 text-sm text-[#939bb4]">
-                  {t(
-                    "common.noResults",
-                    undefined,
-                    "No study sets found matching your search.",
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    {paginatedSets.map((set) => {
+                      const alreadyInClass = classGroup.studySets?.some(
+                        (cs) => cs.id === set.id,
+                      );
+                      const isSelected = selectedSetIds.includes(set.id);
+
+                      return (
+                        <div
+                          key={set.id}
+                          onClick={() => {
+                            if (!alreadyInClass) handleToggleSelectSet(set.id);
+                          }}
+                          className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                            alreadyInClass
+                              ? "bg-[#0a092d]/40 border-[#2e3856]/40 opacity-60 cursor-not-allowed"
+                              : isSelected
+                                ? "bg-indigo-950/40 border-[#6366F1] ring-1 ring-[#6366F1] cursor-pointer"
+                                : "bg-[#0a092d] border-[#2e3856] hover:border-[#4257B2] cursor-pointer"
+                          }`}
+                        >
+                          <div className="min-w-0 space-y-0.5">
+                            <h4 className="text-sm font-bold text-white truncate">
+                              {set.title}
+                            </h4>
+                            <p className="text-xs text-[#939bb4]">
+                              {t(
+                                "studySet.termsCount",
+                                {
+                                  count:
+                                    set.cardCount || set.cards?.length || 0,
+                                },
+                                `${set.cardCount || set.cards?.length || 0} terms`,
+                              )}{" "}
+                              • Level: {set.level || "INTERMEDIATE"}
+                            </p>
+                          </div>
+
+                          <div className="shrink-0">
+                            {alreadyInClass ? (
+                              <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
+                                {t(
+                                  "classes.alreadyAddedBadge",
+                                  undefined,
+                                  "Added ✓",
+                                )}
+                              </span>
+                            ) : (
+                              <div
+                                className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-colors ${
+                                  isSelected
+                                    ? "bg-[#6366F1] border-[#6366F1] text-white"
+                                    : "border-[#3c476c] bg-[#1a1d36]"
+                                }`}
+                              >
+                                {isSelected && (
+                                  <Check className="w-3.5 h-3.5" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Pagination (Max 5 items per page) */}
+                  {totalPages > 1 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-[#2e3856]/70">
+                      <span className="text-xs text-[#939bb4]">
+                        {t("common.page", undefined, "Page")} {setModalPage} /{" "}
+                        {totalPages} ({filteredSets.length}{" "}
+                        {t("home.studySetsTitle", undefined, "study sets")})
+                      </span>
+                      <Pagination
+                        currentPage={setModalPage}
+                        totalPages={totalPages}
+                        onPageChange={setSetModalPage}
+                      />
+                    </div>
                   )}
                 </div>
               );
-            }
-
-            return (
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  {paginatedSets.map((set) => {
-                    const alreadyInClass = classGroup.studySets?.some(
-                      (cs) => cs.id === set.id,
-                    );
-                    const isSelected = selectedSetIds.includes(set.id);
-
-                    return (
-                      <div
-                        key={set.id}
-                        onClick={() => {
-                          if (!alreadyInClass) handleToggleSelectSet(set.id);
-                        }}
-                        className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
-                          alreadyInClass
-                            ? "bg-[#0a092d]/40 border-[#2e3856]/40 opacity-60 cursor-not-allowed"
-                            : isSelected
-                              ? "bg-indigo-950/40 border-[#6366F1] ring-1 ring-[#6366F1] cursor-pointer"
-                              : "bg-[#0a092d] border-[#2e3856] hover:border-[#4257B2] cursor-pointer"
-                        }`}
-                      >
-                        <div className="min-w-0 space-y-0.5">
-                          <h4 className="text-sm font-bold text-white truncate">
-                            {set.title}
-                          </h4>
-                          <p className="text-xs text-[#939bb4]">
-                            {t(
-                              "studySet.termsCount",
-                              { count: set.cardCount || set.cards?.length || 0 },
-                              `${set.cardCount || set.cards?.length || 0} terms`,
-                            )}{" "}
-                            • Level: {set.level || "INTERMEDIATE"}
-                          </p>
-                        </div>
-
-                        <div className="shrink-0">
-                          {alreadyInClass ? (
-                            <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
-                              {t(
-                                "classes.alreadyAddedBadge",
-                                undefined,
-                                "Added ✓",
-                              )}
-                            </span>
-                          ) : (
-                            <div
-                              className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-colors ${
-                                isSelected
-                                  ? "bg-[#6366F1] border-[#6366F1] text-white"
-                                  : "border-[#3c476c] bg-[#1a1d36]"
-                              }`}
-                            >
-                              {isSelected && <Check className="w-3.5 h-3.5" />}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Pagination (Max 5 items per page) */}
-                {totalPages > 1 && (
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-[#2e3856]/70">
-                    <span className="text-xs text-[#939bb4]">
-                      {t("common.page", undefined, "Page")} {setModalPage} /{" "}
-                      {totalPages} ({filteredSets.length}{" "}
-                      {t("home.studySetsTitle", undefined, "study sets")})
-                    </span>
-                    <Pagination
-                      currentPage={setModalPage}
-                      totalPages={totalPages}
-                      onPageChange={setSetModalPage}
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          })()}
+            })()
+          )}
 
           <div className="flex items-center justify-between pt-4 border-t border-[#2e3856]">
             <span className="text-xs text-[#939bb4]">

@@ -1,12 +1,8 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../store/store";
+import { useAppSelector } from "../../store/store";
 import { authApi } from "../../api/authApi";
-import { setUser } from "../../store/slices/authSlice";
-import { addToast } from "../../store/slices/uiSlice";
 import { Button } from "../../components/common/Button";
-import { Input } from "../../components/common/Input";
-import { Modal } from "../../components/common/Modal";
 import { Spinner } from "../../components/common/Spinner";
 import { Badge } from "../../components/common/Badge";
 import {
@@ -14,7 +10,6 @@ import {
   Layers,
   Award,
   Clock,
-  Edit3,
   Plus,
   Sparkles,
   Folder as FolderIcon,
@@ -23,22 +18,29 @@ import {
   Crown,
   Calendar,
   ArrowRight,
-  KeyRound,
-  Lock,
-  Eye,
-  EyeOff,
-  Mail,
   Bookmark,
   Settings,
+  Camera,
 } from "lucide-react";
 import { Pagination } from "../../components/common/Pagination";
 import { UserProfile, UserRole } from "../../types";
 import { useTranslation } from "../../i18n";
-import { ChangePasswordModal } from "../../components/profile/ChangePasswordModal";
-import { ChangeEmailModal } from "../../components/profile/ChangeEmailModal";
+import {
+  SettingsModal,
+  SettingsTab,
+} from "../../components/settings/SettingsModal";
+
+const getDisplayAvatar = (
+  url?: string | null,
+  name?: string | null,
+  username?: string | null,
+) => {
+  if (url && url.trim()) return url.trim();
+  const seed = encodeURIComponent(name?.trim() || username?.trim() || "User");
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=6366f1,4f46e5,3b82f6,06b6d4,10b981`;
+};
 
 export const ProfilePage: React.FC = () => {
-  const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
@@ -59,30 +61,14 @@ export const ProfilePage: React.FC = () => {
     setBookmarksPage(1);
   }, [activeTab]);
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [name, setName] = useState(user?.name || "");
-  const [bio, setBio] = useState(user?.bio || "");
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] =
+    useState<SettingsTab>("profile");
 
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const settingsMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        settingsMenuRef.current &&
-        !settingsMenuRef.current.contains(e.target as Node)
-      ) {
-        setIsSettingsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Change Password & Change Email modal states
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const openSettings = (tab: SettingsTab = "profile") => {
+    setSettingsInitialTab(tab);
+    setIsSettingsModalOpen(true);
+  };
 
   const loadProfileData = async () => {
     try {
@@ -107,25 +93,6 @@ export const ProfilePage: React.FC = () => {
       setLoading(false);
     }
   }, [isAuthenticated]);
-
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-    try {
-      const res = await authApi.updateProfile({ name, bio });
-      dispatch(setUser(res.data));
-      setProfile(res.data);
-      dispatch(addToast({ message: "Profile updated!", type: "success" }));
-      setIsEditModalOpen(false);
-    } catch (err: any) {
-      dispatch(
-        addToast({ message: err.message || "Update failed", type: "error" }),
-      );
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
 
   if (!isAuthenticated || !user) {
     return (
@@ -209,12 +176,7 @@ export const ProfilePage: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <div className="relative group">
             <img
-              src={
-                user.avatarUrl ||
-                `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(
-                  user.username,
-                )}`
-              }
+              src={getDisplayAvatar(user.avatarUrl, user.name, user.username)}
               alt={user.name}
               className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover bg-[#2e3856] border-4 shadow-2xl group-hover:scale-105 transition-all ${
                 user.role === UserRole.ADMIN
@@ -261,6 +223,19 @@ export const ProfilePage: React.FC = () => {
               </div>
             ) : null}
 
+            {/* Hover Camera overlay to change avatar / open settings */}
+            <button
+              type="button"
+              onClick={() => openSettings("profile")}
+              title="Nhấn để đổi ảnh đại diện và chỉnh sửa hồ sơ"
+              className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white transition-all cursor-pointer backdrop-blur-[2px]"
+            >
+              <Camera className="w-6 h-6 text-indigo-300 mb-0.5" />
+              <span className="text-[10px] font-bold text-slate-200">
+                Đổi ảnh
+              </span>
+            </button>
+
             {user.streakCount > 0 && (
               <div
                 className="absolute -bottom-2 -right-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white text-xs font-extrabold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-lg border-2 border-[#1a1d36]"
@@ -280,9 +255,7 @@ export const ProfilePage: React.FC = () => {
               {renderRoleBadge(user.role)}
             </div>
 
-            <p className="text-sm text-[#939bb4]">
-              @{user.username}
-            </p>
+            <p className="text-sm text-[#939bb4]">@{user.username}</p>
 
             {user.bio ? (
               <p className="text-sm text-[#d9dde8] leading-relaxed max-w-xl pt-1">
@@ -309,57 +282,15 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="relative shrink-0" ref={settingsMenuRef}>
+        <div className="relative shrink-0">
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => setIsSettingsOpen((prev) => !prev)}
+            onClick={() => openSettings("profile")}
             icon={<Settings className="w-4 h-4" />}
           >
             {t("common.settings", undefined, "Cài đặt")}
           </Button>
-
-          {isSettingsOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-[#1a1d36] border border-[#2e3856] rounded-xl shadow-2xl z-30 py-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSettingsOpen(false);
-                  setName(user.name);
-                  setBio(user.bio || "");
-                  setIsEditModalOpen(true);
-                }}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#d9dde8] hover:text-white hover:bg-[#202545] transition-colors text-left cursor-pointer"
-              >
-                <Edit3 className="w-4 h-4 text-indigo-400 shrink-0" />
-                <span>{t("profile.editProfile", undefined, "Chỉnh sửa hồ sơ")}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSettingsOpen(false);
-                  setIsPasswordModalOpen(true);
-                }}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#d9dde8] hover:text-white hover:bg-[#202545] transition-colors text-left cursor-pointer"
-              >
-                <KeyRound className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>Đổi mật khẩu</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSettingsOpen(false);
-                  setIsEmailModalOpen(true);
-                }}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#d9dde8] hover:text-white hover:bg-[#202545] transition-colors text-left cursor-pointer"
-              >
-                <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Đổi Email</span>
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -416,70 +347,70 @@ export const ProfilePage: React.FC = () => {
                   </span>
                 )}
               </div>
-          <div>
-            <span className="text-[10px] sm:text-xs font-bold text-[#8e98b0] uppercase tracking-wider block truncate">
-              {t("profile.studyStreak", undefined, "Study Streak")}
-            </span>
-            <div className="text-2xl sm:text-3xl font-black text-white mt-0.5 font-mono">
-              {stats?.streakDays || user.streakCount || 0}{" "}
-              <span className="text-xs font-normal text-[#8e98b0] font-sans">
-                {t("sidebar.days", undefined, "days")}
-              </span>
+              <div>
+                <span className="text-[10px] sm:text-xs font-bold text-[#8e98b0] uppercase tracking-wider block truncate">
+                  {t("profile.studyStreak", undefined, "Study Streak")}
+                </span>
+                <div className="text-2xl sm:text-3xl font-black text-white mt-0.5 font-mono">
+                  {stats?.streakDays || user.streakCount || 0}{" "}
+                  <span className="text-xs font-normal text-[#8e98b0] font-sans">
+                    {t("sidebar.days", undefined, "days")}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Mastered Cards */}
-        <div className="bg-[#0f111a] border border-white/[0.08] rounded-2xl p-3.5 sm:p-5 flex flex-col justify-between gap-2 shadow-xs">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
-            <Award className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] sm:text-xs font-bold text-[#8e98b0] uppercase tracking-wider block truncate">
-              {t("profile.cardsMastered", undefined, "Cards Mastered")}
-            </span>
-            <div className="text-2xl sm:text-3xl font-black text-white mt-0.5 font-mono">
-              {stats?.totalCardsMastered ||
-                profile?.stats?.totalCardsMastered ||
-                0}
+            {/* Mastered Cards */}
+            <div className="bg-[#0f111a] border border-white/[0.08] rounded-2xl p-3.5 sm:p-5 flex flex-col justify-between gap-2 shadow-xs">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+                <Award className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] sm:text-xs font-bold text-[#8e98b0] uppercase tracking-wider block truncate">
+                  {t("profile.cardsMastered", undefined, "Cards Mastered")}
+                </span>
+                <div className="text-2xl sm:text-3xl font-black text-white mt-0.5 font-mono">
+                  {stats?.totalCardsMastered ||
+                    profile?.stats?.totalCardsMastered ||
+                    0}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Sets Created */}
-        <div className="bg-[#0f111a] border border-white/[0.08] rounded-2xl p-3.5 sm:p-5 flex flex-col justify-between gap-2 shadow-xs">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#4f5fd8]/15 border border-[#4f5fd8]/30 text-[#9cb1ff] flex items-center justify-center shrink-0">
-            <Layers className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] sm:text-xs font-bold text-[#8e98b0] uppercase tracking-wider block truncate">
-              {t("profile.setsCreated", undefined, "Sets Created")}
-            </span>
-            <div className="text-2xl sm:text-3xl font-black text-white mt-0.5 font-mono">
-              {stats?.totalSetsCreated || createdSets.length}
+            {/* Sets Created */}
+            <div className="bg-[#0f111a] border border-white/[0.08] rounded-2xl p-3.5 sm:p-5 flex flex-col justify-between gap-2 shadow-xs">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#4f5fd8]/15 border border-[#4f5fd8]/30 text-[#9cb1ff] flex items-center justify-center shrink-0">
+                <Layers className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] sm:text-xs font-bold text-[#8e98b0] uppercase tracking-wider block truncate">
+                  {t("profile.setsCreated", undefined, "Sets Created")}
+                </span>
+                <div className="text-2xl sm:text-3xl font-black text-white mt-0.5 font-mono">
+                  {stats?.totalSetsCreated || createdSets.length}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Study Sessions */}
-        <div className="bg-[#0f111a] border border-white/[0.08] rounded-2xl p-3.5 sm:p-5 flex flex-col justify-between gap-2 shadow-xs">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-pink-500/15 border border-pink-500/30 text-pink-400 flex items-center justify-center shrink-0">
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] sm:text-xs font-bold text-[#8e98b0] uppercase tracking-wider block truncate">
-              {t("profile.studySessions", undefined, "Study Sessions")}
-            </span>
-            <div className="text-2xl sm:text-3xl font-black text-white mt-0.5 font-mono">
-              {stats?.totalStudySessions ||
-                profile?.stats?.totalStudySessions ||
-                0}
+            {/* Study Sessions */}
+            <div className="bg-[#0f111a] border border-white/[0.08] rounded-2xl p-3.5 sm:p-5 flex flex-col justify-between gap-2 shadow-xs">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-pink-500/15 border border-pink-500/30 text-pink-400 flex items-center justify-center shrink-0">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] sm:text-xs font-bold text-[#8e98b0] uppercase tracking-wider block truncate">
+                  {t("profile.studySessions", undefined, "Study Sessions")}
+                </span>
+                <div className="text-2xl sm:text-3xl font-black text-white mt-0.5 font-mono">
+                  {stats?.totalStudySessions ||
+                    profile?.stats?.totalStudySessions ||
+                    0}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    );
-  })()}
+        );
+      })()}
 
       {/* 3. YOUR STUDY SETS, FOLDERS & BOOKMARKS TABS */}
       <div className="space-y-6">
@@ -829,63 +760,14 @@ export const ProfilePage: React.FC = () => {
         )}
       </div>
 
-      {/* Edit Profile Modal */}
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title={t("profile.editModalTitle", undefined, "Edit Profile")}
-      >
-        <form onSubmit={handleUpdateProfile} className="space-y-4">
-          <Input
-            label={t("profile.fullName", undefined, "Full Name")}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-
-          <div className="space-y-1.5 text-left">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#939bb4]">
-              {t("profile.bioLabel", undefined, "Bio / Learning Goals")}
-            </label>
-            <textarea
-              rows={3}
-              placeholder={t(
-                "profile.bioPlaceholder",
-                undefined,
-                "Tell others about your English learning target (e.g. Aiming for IELTS 8.0)...",
-              )}
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              className="w-full bg-[#0a092d] text-white placeholder-[#586380] border border-[#2e3856] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#4257B2]"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setIsEditModalOpen(false)}
-            >
-              {t("common.cancel", undefined, "Cancel")}
-            </Button>
-            <Button type="submit" variant="primary" loading={isSaving}>
-              {t("profile.saveProfile", undefined, "Save Profile")}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Change Password Modal (Isolated React-Hook-Form for zero-lag) */}
-      <ChangePasswordModal
-        isOpen={isPasswordModalOpen}
-        onClose={() => setIsPasswordModalOpen(false)}
-      />
-
-      {/* Change Email Modal (Isolated React-Hook-Form for zero-lag) */}
-      <ChangeEmailModal
-        isOpen={isEmailModalOpen}
-        onClose={() => setIsEmailModalOpen(false)}
-        currentEmail={user.email}
+      {/* MASTER ALL-IN-ONE SETTINGS MODAL */}
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        initialTab={settingsInitialTab}
+        onProfileUpdated={(updated) => {
+          setProfile(updated);
+        }}
       />
     </div>
   );

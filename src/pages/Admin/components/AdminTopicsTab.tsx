@@ -1,16 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "../../../components/common/Button";
 import { Spinner } from "../../../components/common/Spinner";
-import {
-  Tag,
-  Plus,
-  RotateCcw,
-  Save,
-  Hash,
-  Eye,
-  Trash2,
-} from "lucide-react";
+import { Tag, Plus, RotateCcw, Save, Hash, Eye, Trash2 } from "lucide-react";
 
 export const DEFAULT_TOPICS_LIST = [
   "Speaking",
@@ -53,7 +46,9 @@ export const AdminTopicsTab: React.FC<AdminTopicsTabProps> = React.memo(
         return;
       }
       if (topics.some((t) => t.toLowerCase() === clean.toLowerCase())) {
-        setError("topic", { message: `Chủ đề "${clean}" đã có trong danh sách` });
+        setError("topic", {
+          message: `Chủ đề "${clean}" đã có trong danh sách`,
+        });
         return;
       }
       onChangeTopics([...topics, clean]);
@@ -89,8 +84,9 @@ export const AdminTopicsTab: React.FC<AdminTopicsTabProps> = React.memo(
                 Tùy chỉnh danh sách chủ đề nổi bật trên Homepage
               </h2>
               <p className="text-xs sm:text-sm text-[#939bb4] max-w-2xl">
-                Các hashtag chủ đề này sẽ được hiển thị trực tiếp ở thanh lọc khám phá đầu trang chủ.
-                Người học có thể bấm vào để lọc nhanh các học phần tương ứng.
+                Các hashtag chủ đề này sẽ được hiển thị trực tiếp ở thanh lọc
+                khám phá đầu trang chủ. Người học có thể bấm vào để lọc nhanh
+                các học phần tương ứng.
               </p>
             </div>
 
@@ -161,7 +157,8 @@ export const AdminTopicsTab: React.FC<AdminTopicsTabProps> = React.memo(
               <span>Thêm chủ đề mới</span>
             </div>
             <p className="text-xs text-[#939bb4]">
-              Nhập tên chủ đề (VD: TOEIC, Travel, Pronunciation, Phrasal Verbs) rồi bấm Thêm hoặc nhấn Enter.
+              Nhập tên chủ đề (VD: TOEIC, Travel, Pronunciation, Phrasal Verbs)
+              rồi bấm Thêm hoặc nhấn Enter.
             </p>
 
             <form onSubmit={handleSubmit(handleAddTopic)} className="space-y-3">
@@ -209,9 +206,15 @@ export const AdminTopicsTab: React.FC<AdminTopicsTabProps> = React.memo(
                   <button
                     key={sug}
                     type="button"
-                    disabled={topics.some((t) => t.toLowerCase() === sug.toLowerCase())}
+                    disabled={topics.some(
+                      (t) => t.toLowerCase() === sug.toLowerCase(),
+                    )}
                     onClick={() => {
-                      if (!topics.some((t) => t.toLowerCase() === sug.toLowerCase())) {
+                      if (
+                        !topics.some(
+                          (t) => t.toLowerCase() === sug.toLowerCase(),
+                        )
+                      ) {
                         onChangeTopics([...topics, sug]);
                       }
                     }}
@@ -245,7 +248,9 @@ export const AdminTopicsTab: React.FC<AdminTopicsTabProps> = React.memo(
             ) : topics.length === 0 ? (
               <div className="text-center py-12 bg-[#0a092d] rounded-xl border border-dashed border-[#2e3856] space-y-2">
                 <Tag className="w-8 h-8 text-[#545d78] mx-auto" />
-                <p className="text-sm font-semibold text-white">Chưa có chủ đề nào</p>
+                <p className="text-sm font-semibold text-white">
+                  Chưa có chủ đề nào
+                </p>
                 <p className="text-xs text-[#939bb4]">
                   Nhập chủ đề ở khung bên trái hoặc nhấn "Khôi phục mặc định"
                 </p>
